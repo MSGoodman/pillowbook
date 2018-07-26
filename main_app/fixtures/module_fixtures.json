@@ -1,0 +1,288 @@
+[
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Sleep", 
+            "url_name": "sleep", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+    {
+        "model": "main_app.modulebutton", 
+        "pk": 1, 
+        "fields": {
+            "name": "Overview", 
+            "url_name": "overview", 
+            "background_color": "#8bacbd", 
+            "icon_source": "UN", 
+            "icon_unicode": "\ud83d\udcd3", 
+            "icon_font_awesome": "clipboard-list", 
+            "display": true
+        }
+    },
+]

@@ -1,0 +1,12 @@
+<div>
+    {{ error }}
+</div>
+<form method="post" action="login">{% csrf_token %}
+    <label for="email">
+        <input type="text" id="email" name="email" placeholder="Email">
+    </label>
+    <label for="password">
+        <input type="password" id="password" name="password" placeholder="Password">
+    </label>
+    <input type="submit" value="login/" />
+</form>

@@ -1,0 +1,3685 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    {% load static %}
+    <meta charset="UTF-8">
+
+    <!-- Lodash -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.js"></script>
+    <!-- Icon -->
+    <link rel="icon"  type="image/png"  href="{% static 'lifesheet.ico' %}">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Libre+Franklin:400,900" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Arimo" rel="stylesheet">
+    <!-- JQuery -->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <!-- Cookie -->
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+    <!-- Axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- Moment -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/locale/es-us.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+    <!-- Vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    <script src="https://unpkg.com/vue-star-rating/dist/star-rating.min.js"></script>
+        <!-- CDNJS :: Sortable (https://cdnjs.com/) -->
+    <script src="//cdn.jsdelivr.net/npm/sortablejs@1.7.0/Sortable.min.js"></script>
+        <!-- CDNJS :: Vue.Draggable (https://cdnjs.com/) -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.16.0/vuedraggable.min.js"></script>
+
+    <!-- My CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'stylesheets/main.css' %}">
+
+    <title></title>
+</head>
+<body>
+    <script>
+        const myAxios = axios.create({
+            baseURL: 'http://45.56.102.188:8000/api/',
+            timeout: 1000,
+            headers: {
+                'X-CSRFToken': Cookies.get('csrftoken')
+            },
+            credentials: "include",
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/json',
+        });
+        
+        var map;
+        var markers = [];
+        var mapLoaded = false;
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: {lat: 0, lng: 0},
+                zoom: 2
+            });
+        }
+
+        function dateToString(date){
+            return date.getFullYear() + '-' + String(date.getMonth()+1).padStart(2,'0') + '-' + String(date.getDate()).padStart(2,'0');
+        }
+        window.onload = function() {
+            Vue.filter('formatTime', function(value){
+                if(value){
+                    return moment(String(value), 'HH:mm:ss').format('h:mm a');
+                }
+            });
+            Vue.component('star-rating', VueStarRating.default);
+            Vue.filter('toCurrency', function (value) {
+                if (typeof value !== "number") {
+                    return value;
+                }
+                var formatter = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 0
+                });
+                return formatter.format(value);
+            });
+            
+            var convertRatings = function(entries){
+                if (Array.isArray(entries)){
+                    entries.forEach(entry => entry.rating ? entry.rating = parseFloat(entry.rating) : "");
+                }
+                else {
+                    entries.rating = parseFloat(entries.rating);
+                }
+                return entries;
+            }
+
+            var entryHandlingItemMixin = {
+                data: function() { return { showOptions: false, deleted: false, } },
+                props: ['entry','endpoint'],
+                delimiters: ["[{","}]"],
+                methods: {
+                    updateEntry: function() {
+                        myAxios.put(this.endpoint + "/" + this.entry.id, this.entry);
+                    },
+                    deleteEntry: function() {
+                        this.deleted = true;
+                        myAxios.delete(this.endpoint + "/" + this.entry.id);
+                    }
+                }
+            }
+            var entryHandlingPageMixin = {
+                delimiters: ["[{","}]"],
+                data: function() {
+                    return {
+                        date: dateToString(new Date()),
+                        entries: [],
+                        newEntry: {},
+                        showNewEntry: false
+                    }
+                },
+                mounted: function() {
+                    if (this.noMixinMounted){ return }
+                    myAxios.get(this.endpoint + "/" + dateToString(new Date())).then(response => this.entries = convertRatings(response.data));
+                    document.getElementById("id_date").valueAsDate = new Date();
+                },
+                watch: {
+                    date: function() {
+                        if (this.date === '') { return }
+                        myAxios.get(this.endpoint + "/" + this.date).then(response => this.entries = convertRatings(response.data));
+                    }
+                },
+                methods: {
+                    createNewEntry: function() {
+                        this.newEntry['date'] = this.date;
+                        myAxios.post(this.endpoint, this.newEntry)
+                            .then(response => {
+                                this.entries.push(convertRatings(response.data)); 
+                                this.showNewEntry = false;
+                                this.newEntry = {};
+                            });
+                    },
+                },
+                computed: { sortedEntries: function(){ return this.entries } },
+            }
+            var apiCalloutMixin = {
+                methods: {
+                    getVideoGameByID: function(id) {
+                        fetch(`http://localhost:8000/api/videogame/{id}`)
+                        .then(response => response.json())
+                        .then(
+                            (json) => { this.videogame = json },
+                            (error) => { console.log(error) }
+                        );
+                    },
+                    getVideoGamesByDate: function(date, valueToSet) {
+                        fetch('http://localhost:8000/api/videogame/' + date)
+                        .then(response => response.json())
+                        .then(
+                            (json) => { 
+                                this.videogames = json;
+                            },
+                            (error) => { console.log(error) }
+                        );
+                    },
+                    getAllVideoGames: function() {
+                        fetch('http://localhost:8000/api/videogame')
+                        .then(response => response.json())
+                        .then(
+                            (json) => { 
+                                this.videogames = json; 
+                            },
+                            (error) => { console.log(error) }
+                        );
+                    },
+                    getBoardGameByID: function(id) {
+                        fetch(`http://localhost:8000/api/boardgame/{id}`)
+                        .then(response => response.json())
+                        .then(
+                            (json) => { this.boardgame = json },
+                            (error) => { console.log(error) }
+                        );
+                    },
+                    getBoardGamesByDate: function(date) {
+                        fetch('http://localhost:8000/api/boardgame/' + date)
+                        .then(response => response.json())
+                        .then(
+                            (json) => { 
+                                this.boardgames = json; 
+                                this.boardgames
+                            },
+                            (error) => { console.log(error) }
+                        );
+                    },
+                    getAllBoardGames: function() {
+                        fetch('http://localhost:8000/api/boardgame')
+                        .then(response => response.json())
+                        .then(
+                            (json) => { 
+                                this.boardgames = json; 
+                            },
+                            (error) => { console.log(error) }
+                        );
+                    },
+                    getOverviewByID: function(id) {
+                        fetch(`http://localhost:8000/api/overview/{id}`, {credentials: "same-origin"})
+                        .then(response => response.json())
+                        .then(
+                            (json) => { this.overview = json },
+                            (error) => { console.log(error) }
+                        );
+                    },
+                    getOverviewsByDate: function(date) {
+                        fetch('http://localhost:8000/api/overview/' + date, {credentials: "same-origin"})
+                        .then(response => response.json())
+                        .then(
+                            (json) => { 
+                                this.overviews = json; 
+                                this.overviews
+                            },
+                            (error) => { console.log(error) }
+                        );
+                    },
+                    getAllOverviews: function() {
+                        fetch('http://localhost:8000/api/overview')
+                        .then(response => response.json())
+                        .then(
+                            (json) => { 
+                                this.overviews = json; 
+                            },
+                            (error) => { console.log(error) }
+                        );
+                    },
+                }
+            }
+            
+            var optionsStore = {
+                state: {
+                    tabIndent: false,
+                    disableDrag: false,
+                },
+            }
+            
+            // Side buttons
+            Vue.component('side-buttons', {
+                delimiters: ["[{","}]"],
+                props: ['modules','projects','quizzes','pursuits','cardio','weight','foods','recipes','film','lit','boardgames'],
+                template:
+                `
+                <section id="date-agnostic-element-container">
+                    <router-link to="/modules" v-if="modules">
+                        <a class="button" style="background-color:#C1A49E">
+                            <span class="button-label">Modules</span>
+                            <span class="button-icon"><!--🔲--> 	&#128306;</span>
+                        </a>
+                    </router-link>
+                    <router-link to="/projects" v-if="projects">
+                        <a class="button" style="background-color:#C1A49E">
+                            <span class="button-label">Projects</span>
+                            <span class="button-icon"><!--📂--> 	&#128193;</span>
+                        </a>
+                    </router-link>
+                    <router-link to="/quizzes" v-if="quizzes">
+                        <a class="button" style="background-color:#C1A49E">
+                            <span class="button-label">Quizzes</span>
+                            <span class="button-icon"><!--🍎--> 	&#127822;</span>
+                        </a>
+                    </router-link>
+                    <router-link to="/pursuits" v-if="pursuits">
+                        <a class="button" style="background-color:#C1A49E">
+                            <span class="button-label">Pursuits</span>
+                            <span class="button-icon"><!--📑-->   &#128209;</span>
+                        </a>
+                    </router-link>
+                    <router-link to="/cardioexercises" v-if="cardio">
+                        <a class="button" style="background-color:#C1A49E">
+                            <span class="button-label">Cardio</span>
+                            <span class="button-icon"><!--🏃--> 	🏃</span>
+                        </a>
+                    </router-link>
+                    <router-link to="/weightexercises" v-if="weight">
+                        <a class="button" style="background-color:#C1A49E">
+                            <span class="button-label">Weight</span>
+                            <span class="button-icon"><!--💪-->   💪</span>
+                        </a>
+                    </router-link>
+                    <router-link to="/fooditems" v-if="foods">
+                        <a class="button" style="background-color:#C1A49E">
+                            <span class="button-label">Foods</span>
+                            <span class="button-icon"><!--🍔-->   🍔</span>
+                        </a>
+                    </router-link>
+                    <router-link to="/recipes" v-if="recipes">
+                        <a class="button" style="background-color:#C1A49E">
+                            <span class="button-label">Recipe</span>
+                            <span class="button-icon"><!--🍲-->   🍲</span>
+                        </a>
+                    </router-link>
+                    <router-link to="/filmsToWatch" v-if="film">
+                        <a class="button" style="background-color:#C1A49E">
+                            <span class="button-label">To Watch</span>
+                            <span class="button-icon">🎥</span>
+                        </a>
+                    </router-link>
+                    <router-link to="/boardgamesToPlay" v-if="boardgames">
+                        <a class="button" style="background-color:#C1A49E">
+                            <span class="button-label">To Play</span>
+                            <span class="button-icon">🎲</span>
+                        </a>
+                    </router-link>
+                    <router-link to="/booksToRead" v-if="lit">
+                        <a class="button" style="background-color:#C1A49E">
+                            <span class="button-label">To Read</span>
+                            <span class="button-icon">📖</span>
+                        </a>
+                    </router-link>
+                </section>
+                `
+            })
+            Vue.component('options-buttons', {
+                delimiters: ["[{","}]"],
+                props: ['showOptionsButton'],
+                data: function() {
+                    return {
+                        showSettings: true,
+                        draggingDisabled: false,
+                        tabindent: false,
+                        options: optionsStore,
+                    }
+                },
+                computed: {
+                    showDisableDrag: function() {
+                        return this.$route.path === "/todo";
+                    }
+                },
+                template: 
+                `
+                <div v-if="showOptionsButton">
+                    <a class="clickable" id="settings-button" v-on:click="showSettings = !showSettings">
+                        <span class="button-icon"><!--🔧--> 	&#128295;</span>
+                    </a>
+
+                    <div id="settings-section" v-if="showSettings">
+                        <label v-if="showDisableDrag"> Disable Dragging <input type="checkbox" v-model="options.state.disableDrag"> </label>
+                        <label> Tab Indents Text <input type="checkbox" v-model="options.state.tabIndent"> </label>
+
+                    </div>
+                </div>
+                `
+            })
+            
+            // Index
+            Vue.component('module-button', {
+                delimiters: ["[{","}]"],
+                props: ['module'],
+                data: function() { 
+                    return { 
+                        'background-color': ''
+                    } 
+                },
+                mounted: function() { },
+                computed: {
+                    style() { return "background-color: " + this.module.background_color },
+                    fontAwesomeClass() {  return 'fas fa-' + this.module.icon_font_awesome; },
+                    url(){
+                        return this.module.url_name;
+                    }
+                },
+                template: 
+                `
+                <router-link v-bind:to="url">
+                    <a class="button" :style="style" v-if="module.display">
+                        <span class="button-icon"> 
+                            <span v-if="module.icon_source == 'UN'"> 
+                                [{ module.icon_unicode }]
+                            </span>
+                            <span v-if="module.icon_source == 'FA'"> 
+                                <span :class="fontAwesomeClass"></span>
+                            </span>
+                        </span>
+                        <span class="button-label"> [{ module.name }] </span>
+                    </a>
+                </router-link>`,
+                methods: { }
+            });
+            indexComponent = Vue.component('index-page', {
+                delimiters: ["[{","}]"],
+                data: function() { 
+                    return { 
+                        modules: [],
+                        todayEntries: {} 
+                    } 
+                },
+                mounted: function() { this.getAllModules(); },
+                methods: {
+                    getAllModules: function() {
+                        myAxios.get('modules')
+                            .then(response => this.modules = response.data);
+                    },
+                    modulesForSection: function(section){
+                        return this.modules.filter(m => m.category === section);
+                    }
+                },
+                computed: {
+                    sections: function(){
+                        var sectionsSet = new Set(this.modules.map(m => m.category));
+                        return Array.from(sectionsSet);
+                    },
+                },
+                template:
+                `
+                <div class="button-container">
+                    <div v-for="section in sections"> 
+
+                        <h2>[{ section }]</h2>
+
+                        <module-button v-for="module in modules" v-if="module.category === section"
+                            v-bind:module="module"
+                            v-bind:key="module.id"
+                            v-bind:entered="todayEntries[module.name]">
+                        </module-button>
+                    </div>
+                    
+                    <side-buttons :modules="true" > </side-buttons>
+                
+                </div>
+                `
+            });
+
+            // Overview
+            Vue.component('overview-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="overview-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="overview-info ">
+                        
+                        <div class="overview-name item-body-element"> [{ entry.highlights }] 
+                        <span class="overview-name item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                        </div>
+                        
+                        <div class="overview-review art-review">
+                                [{ entry.description }] 
+                        </div>
+
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Hightlights: <input type="text" v-model="entry.highlights" v-on:blur="updateEntry"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Description: <textarea v-model="entry.description" v-on:blur="updateEntry"> </textarea></label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Overview </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            overviewComponent = Vue.component('overview-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "overview",} },
+                template:
+                `
+                <div>
+                    <h1>Overview</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="overview-list" class="object-list">
+                        <overview-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </overview-item>
+                    </div>
+                    
+                    <div id="newOverview" v-if="showNewEntry">
+                        <label>Highlights: <input type="text" v-model="newEntry.highlights" /> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Description: <textarea v-model="newEntry.description" style="width:25%;"/> </textarea> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry" v-if="sortedEntries.length < 1"> New Overview </button>
+                    </div>
+                </div>
+                `
+            })
+
+            // Sleep
+            Vue.component('sleep-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="sleep-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="sleep-info ">
+                        
+                        <div class="item-body-element">
+                            <b> [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] </b> ( [{ sleepDuration }] )
+                        </div>
+                        
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        
+                        <label>Time Started: <input type="time" v-model="entry.start_time" /> </label>
+                        <label>Time Ended: <input type="time" v-model="entry.end_time" /> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Sleep </div>
+                        </div>
+                    </div>
+                </div>`,
+                computed: {
+                    sleepDuration: function(){
+                        var duration = moment.utc(moment(this.entry.end_time,"HH:mm:ss").diff(moment(this.entry.start_time,"HH:mm:ss")))
+                        return duration.format("H") + " hours, " + duration.format("m") + " minutes"
+                    }
+                }
+            });
+            sleepComponent = Vue.component('sleep-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "sleep",} },
+                template:
+                `
+                <div>
+                    <h1>Sleep</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="sleep-list" class="object-list">
+                        <sleep-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </sleep-item>
+                    </div>
+                    
+                    <div id="newSleep" v-if="showNewEntry">
+                        <label>Time Started: <input type="time" v-model="newEntry.start_time" /> </label>
+                        <label>Time Ended: <input type="time" v-model="newEntry.end_time" /> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Sleep </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // Weight
+            Vue.component('weight-item', {
+                mixins: [entryHandlingItemMixin],
+                props: ['weight-types'],
+                template: 
+                `<div  v-if="!deleted" class="weight-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="weight-info ">
+                        <span class="weight-start item-top-detail"> [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] </span>
+                        <span class="weight-weight item-top-detail"> [{ entry.weight }] lbs </span>
+                        <span class="weight-reps item-top-detail"> [{ entry.reps }] reps </span>
+                        <div class="weight-type item-body-element"> [{ getWeightTypeName(entry.type) }] </div>
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Weight: <input type="number" v-model="entry.weight" v-on:blur="updateEntry"/> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Workout </div>
+                        </div>
+                    </div>
+                </div>`,
+                methods: {
+                    getWeightTypeName: function(id){
+                        return this.weightTypes.find(wt => wt.id === id).name;
+                    }
+                }
+            });
+            weightComponent = Vue.component('weight-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "weight", weightTypes: [], } },
+                computed: { sortedEntries: function(){ return _.orderBy(this.entries, ['start_time']); } },
+                methods: {
+                    getAllWeightTypes: function() {
+                        myAxios.get("weightTypes")
+                            .then(response => this.weightTypes = response.data);
+                    },
+                },
+                mounted: function() { this.getAllWeightTypes(); },
+                template:
+                `
+                <div>
+                    <h1>Weight Workouts</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="weight-list" class="object-list">
+                        <weight-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :weight-types="weightTypes"
+                        :endpoint="endpoint">
+                        </weight-item>
+                    </div>
+                    
+                    <div id="newWeight" v-if="showNewEntry">
+                        <label> Exercise: 
+                            <select v-model="newEntry.type">
+                                <option v-for="exercise in weightTypes" :value="exercise.id">
+                                    [{ exercise.name }]
+                                </option>
+                            </select>
+                        </label>
+
+                        <label>Weight: <input type="number" v-model="newEntry.weight" /> </label>
+                        <label>Reps: <input type="number" v-model="newEntry.reps" /> </label>
+                        <label>Time Started: <input type="time" v-model="newEntry.start_time" /> </label>
+                        <label>Time Ended: <input type="time" v-model="newEntry.end_time" /> </label>
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Weight </button>
+                    </div>
+
+                    <side-buttons :weight="true" ></side-buttons>
+
+                </div>
+                `
+            });
+            
+            // Cardio
+            Vue.component('cardio-item', {
+                mixins: [entryHandlingItemMixin],
+                props: ['cardio-types'],
+                template: 
+                `<div  v-if="!deleted" class="cardio-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="cardio-info ">
+                        <span class="cardio-start item-top-detail"> [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] </span>
+                        <span class="cardio-cardio item-top-detail"> [{ entry.calories_burned }] Cals </span>
+                        <div class="cardio-type item-body-element"> [{ getCardioTypeName(entry.type) }] </div>
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Cardio: <input type="number" v-model="entry.cardio" /> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Workout </div>
+                        </div>
+                    </div>
+                </div>`,
+                methods: {
+                    getCardioTypeName: function(id){
+                        return this.cardioTypes.find(ct => ct.id === id).name;
+                    }
+                }
+            });
+            cardioComponent = Vue.component('cardio-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "cardio", cardioTypes: [], } },
+                computed: { sortedEntries: function(){ return _.orderBy(this.entries, ['start_time']); }},
+                mounted: function() { this.getAllCardioTypes(); },
+                methods: {
+                    getAllCardioTypes: function() {
+                        myAxios.get("cardioTypes")
+                            .then(response => this.cardioTypes = response.data);
+                    },
+                },
+                template:
+                `
+                <div>
+                    <h1>Cardio Workouts</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="cardio-list" class="object-list">
+                        <cardio-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint"
+                        :cardio-types="cardioTypes">
+                        </cardio-item>
+                    </div>
+                    
+                    <div id="newCardio" v-if="showNewEntry">
+                        <label> Exercise: 
+                            <select v-model="newEntry.type">
+                                <option v-for="exercise in cardioTypes" :value="exercise.id">
+                                    [{ exercise.name }]
+                                </option>
+                            </select>
+                        </label>
+                        <label>Calories Burned: <input type="number" v-model="newEntry.calories_burned" /> </label>
+                        <label>Time Started: <input type="time" v-model="newEntry.start_time" /> </label>
+                        <label>Time Ended: <input type="time" v-model="newEntry.end_time" /> </label>
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Cardio </button>
+                    </div>
+                    
+                    <side-buttons :cardio="true" ></side-buttons>
+                </div>
+                `
+            });
+
+            // Toilet
+            Vue.component('toilet-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="toilet-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="toilet-info ">
+                        
+                        <div class="item-body-element">
+                            <b> [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] </b> 
+                            <div> <b> Bristol: </b> <img v-bind:src="bristolImageSrc" v-if="entry.bristol < 8 && entry.bristol > 0 " class="bristol-image" /> </div>
+                            
+                        </div>
+                        
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        
+                        <label>Time Started: <input type="time" v-model="entry.start_time" /> </label>
+                        <label>Time Ended: <input type="time" v-model="entry.end_time" /> </label>
+                        <label>Bristol: <input type="number" v-model="entry.bristol" min="1" max="7" /> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Toilet </div>
+                        </div>
+                    </div>
+                </div>`,
+                computed: {
+                    bristolImageSrc: function() {
+                        var imgName = "bristol" + this.entry.bristol + ".png";
+                        return `{% static imgName %}` + imgName
+                    }
+                }
+            });
+            toiletComponent = Vue.component('toilet-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "toilet",} },
+                computed: {
+                    bristolImageSrc: function() {
+                        var imgName = "bristol" + this.newEntry.bristol + ".png";
+                        return `{% static imgName %}` + imgName
+                    }
+                },
+                template:
+                `
+                <div>
+                    <h1>Bathroom</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="toilet-list" class="object-list">
+                        <toilet-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </toilet-item>
+                    </div>
+                    
+                    <div id="newToilet" v-if="showNewEntry">
+                    
+                        <label>Time Started: <input type="time" v-model="newEntry.start_time" /> </label>
+                        <label>Time Ended: <input type="time" v-model="newEntry.end_time" /> </label>
+                        <label>Bristol: <input type="number" v-model="newEntry.bristol" min="1" max="7" /> </label>
+                        <img v-bind:src="bristolImageSrc" v-if="newEntry.bristol < 8 && newEntry.bristol > 0 " />
+                        <br>
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Toilet </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // Sex
+            Vue.component('sex-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="sex-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="sex-info ">
+                        
+                        <div class="sex-name item-body-element"> [{ entry.type }] 
+                        </div>
+
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Type: <input type="text" v-model="entry.type" v-on:blur="updateEntry"/> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Sex </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            sexComponent = Vue.component('sex-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "sex",} },
+                template:
+                `
+                <div>
+                    <h1>Sex</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="sex-list" class="object-list">
+                        <sex-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </sex-item>
+                    </div>
+                    
+                    <div id="newSex" v-if="showNewEntry">
+                        <label>Type: <input type="text" v-model="newEntry.type" /> </label>
+                        
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Sex </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // Period
+            Vue.component('period-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="period-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="period-info ">
+                        
+                        <div class="period-name item-body-element"> 
+                            <label>Period: <input type="checkbox" v-model="entry.period" v-on:change="updateEntry"> </label>
+                        </div>
+
+                    </div>
+
+                </div>`,
+            });
+            periodComponent = Vue.component('period-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "period",} },
+                template:
+                `
+                <div>
+                    <h1>Period</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="period-list" class="object-list">
+                        <period-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </period-item>
+                    </div>
+                    
+                    <div id="newPeriod" v-if="showNewEntry">
+                        <label>Period: <input type="checkbox" v-model="newEntry.period"> 
+                        
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Period </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // Learning
+            Vue.component('learning-item', {
+                mixins: [entryHandlingItemMixin],
+                props: ['tabindent'],
+                template: 
+                `<div  v-if="!deleted" class="learning-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="learning-info ">
+                        
+                        <div class="learning-name item-body-element"> <strong>[{ entry.summary }]</strong>
+                        </div>
+                        
+                        <div class="learning-review art-review">[{ entry.details }]</div>
+
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Summary: <input type="text" v-model="entry.summary" v-on:blur="updateEntry"/> </label>
+                        <label>Review: <textarea v-model="entry.details" v-on:blur="updateEntry" @keydown.tab="textAreaTab"> </textarea></label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Learning </div>
+                        </div>
+                    </div>
+                </div>`,
+                methods: {
+                    updateLearning: function() {
+                        console.log(JSON.stringify(this.learning))
+                        fetch(`http://localhost:8000/api/learning/${this.learning.id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Accept': 'application/json, text/plain, */*',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.learning),
+                        })
+                        .then(
+                            response => console.log(response),
+                            () => console.log('OOPS')
+                        );
+                    },
+                    deleteLearning: function() {
+                        console.log(JSON.stringify(this.learning))
+                        this.deleted = true;
+                        fetch(`http://localhost:8000/api/learning/${this.learning.id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Accept': 'application/json, text/plain, */*',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.learning),
+                        })
+                        .then(function(response){
+                            },
+                            () => console.log('OOPS')
+                        );
+                    },
+                    textAreaTab: function(event){
+                        if (this.tabindent){
+                            event.preventDefault();
+                            caretLocation = event.target.selectionStart;
+                            event.target.value = [event.target.value.slice(0, caretLocation), '    ', event.target.value.slice(caretLocation)].join('');
+                            event.target.focus();
+                            event.target.selectionEnd = caretLocation + 4;
+                        }
+                    }
+                }
+            });
+            learningComponent = Vue.component('learning-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "learning", options: optionsStore, } },
+                template:
+                `
+                <div>
+                    <h1>Learning</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="learning-list" class="object-list">
+                        <learning-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint"
+                        :tabindent="options.state.tabIndent">
+                        </learning-item>
+                    </div>
+                    
+                    <div id="newLearning" v-if="showNewEntry">
+                        <label>Summary: <input type="text" v-model="newEntry.summary" /> </label>
+                        <label>Details: <textarea v-model="newEntry.details" style="width:25%;"/> </textarea> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Learning </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // Money
+            Vue.component('money-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div v-if="!deleted" class="money-item">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions" style="display:inline-block">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="money-info" style="display:inline-block">
+                        <span class="money-amount" v-bind:class="[{negamoney: entry.amount > 0}]"> <b> $[{ entry.amount }] </b> </span>
+                        <span class="money-name">[{ entry.name }] </span>
+                        <span class="money-category item-top-detail" >[{ entry.category }] </span>
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Name:  <input v-model="entry.name" v-on:blur="updateEntry"/>  </label>
+                        <label>Amount: <input type="number" min="0.01" step="0.01" v-model="entry.amount" v-on:blur="updateEntry" /> </label>
+                        <label>Category: <input v-model="entry.category" v-on:blur="updateEntry"/> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Money </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            moneyComponent = Vue.component('money-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "money",} },
+                template:
+                `
+                <div>
+                    <h1>Money</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="money-list" class="object-list">
+                        <money-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </money-item>
+                    </div>
+                    
+                    <div id="newMoney" v-if="showNewEntry">
+                    
+                        <label>Name:  <input v-model="newEntry.name"/>  </label>
+                        <label>Amount: <input type="number" min="0.01" step="0.01" v-model="newEntry.amount" /> </label>
+                        <label>Category: <input v-model="newEntry.category" /> </label>
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Money </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // Study
+            Vue.component('study-item', {
+                mixins: [entryHandlingItemMixin],
+                props: ['quizzes'],
+                template: 
+                `<div  v-if="!deleted" class="study-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="study-info ">
+                        <div class="study-type item-body-element"><b>[{ getQuiz(entry.quiz).name }]</b> [{entry.correct_records}] / [{ getQuiz(entry.quiz).total_records }] ([{correctPercent}]%) </div>
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label> Quiz: 
+                            <select v-model="entry.quiz">
+                                <option v-for="quiz in quizzes" :value="quiz.id">
+                                    [{ quiz.name }]
+                                </option>
+                            </select>
+                        </label>
+                        <label>Correct Records: <input type="number" v-model="entry.correct_records" /> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Workout </div>
+                        </div>
+                    </div>
+                </div>`,
+                methods: {
+                    getQuiz: function(id){
+                        return this.quizzes.find(ct => ct.id === id);
+                    }
+                },
+                computed: {
+                    correctPercent: function(){
+                        return Math.round((this.entry.correct_records / this.getQuiz(this.entry.quiz).total_records) * 100 * 10) / 10; 
+                    }
+                }
+            });
+            studyComponent = Vue.component('study-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "study", quizzes: [], } },
+                computed: {
+                    sortedEntries: function(){
+                        var date = this.date;
+                        return _.filter(this.entries, function(study){ return study.date === date; })
+                    },
+                },
+                mounted: function() {
+                    myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
+                    this.getAllStudyTypes();
+                },
+                methods: {
+                    getAllStudyTypes: function() {
+                        myAxios.get("quizzes")
+                            .then(response => this.quizzes = response.data )
+                    },
+                    correctPercent: function(study){
+                        return Math.round((study.correct_records / this.getQuiz(study.quiz).total_records) * 100 * 10) / 10; 
+                    },
+                    getQuiz: function(id){
+                        return this.quizzes.find(ct => ct.id === id);
+                    }
+                },
+                template:
+                `
+                <div>
+                    <h1>Study</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="study-list" class="object-list">
+                        <study-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint"
+                        :quizzes="quizzes">
+                        </study-item>
+                    </div>
+                    
+                    <div id="newStudy" v-if="showNewEntry">
+                        
+                        <label> Quiz: 
+                            <select v-model="newEntry.quiz">
+                                <option v-for="quiz in quizzes" :value="quiz.id">
+                                    [{ quiz.name }]
+                                </option>
+                            </select>
+                        </label>
+                        <label>Correct Records: <input type="number" v-model="newEntry.correct_records" /> </label>
+                    
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Study </button>
+                    </div>
+
+                    <div id="summary-table-container">
+                        <table id="summary-table">
+                            <thead>
+                                <tr id="table-bottom-header">
+                                    <td>Date</td>
+                                    <td>Quiz</td>
+                                    <td>Score</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="study in entries">
+                                    <td> [{ study.date }] </td>
+                                    <td> [{ getQuiz(study.quiz).name }] </td>
+                                    <td> [{study.correct_records}] / [{ getQuiz(study.quiz).total_records }] <strong> ([{ correctPercent(study) }]%) </strong> </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <side-buttons :quizzes="true" ></side-buttons>
+                </div>
+                `
+            });
+
+            // To-Do
+            Vue.component('todo-item', {
+                delimiters: ["[{","}]"],
+                props: ['todo', 'pursuits', 'projects', 'date', 'draggable','tabindent'],
+                data: function() {
+                    return {
+                        showOptions: false,
+                        selected: '',
+                        deleted: false,
+                    }
+                },
+                template: 
+                `<div class="todo-item" v-if="!deleted" 
+                    v-bind:class="[
+                        { 'task-waiting': todo.waiting_on, 
+                        'task-completed': todo.status == 'CO' || todo.status == 'CA',
+                        'draggable': draggable,
+                        'low-priority': todo.priority === 1,
+                        'medium-priority': todo.priority === 2,
+                        'high-priority': todo.priority === 3,
+                        }]">
+                    
+                    <span class="clickable edit-icon" v-on:click="toggleOptions">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    
+                    <span class="pursuit"> [{ getPursuitFromLoaded(todo.pursuit).icon }] </span>
+                    <span class="clickable heavy-icon" v-on:click="toggleStatus">
+                        <span v-if="todo.status === 'CO'">☑</span>
+                        <span v-else-if="todo.status === 'CA'">☒</span>
+                        <span v-else>☐</span>
+                    </span> 
+                    
+                    <span class="blink negamoney" v-if="todo.start_time"> <span class="fas fa-circle"></span> </span>
+                    <span class="todo-name"> [{ todo.name }] </span>
+                    <span class="todo-project" v-if="todo.project"> [{ projects[todo.project].name }] </span> 
+
+                    <span class="waiting-on" v-if="todo.due_date" v-bind:class="[{negamoney: todoPastDue}]">
+                        (Due: [{ todo.due_date }])
+                    </span>
+
+                    <span class="waiting-on" v-if="todo.waiting_on">
+                        (Waiting On... [{ todo.waiting_on }])
+                    </span>
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label> Task: 
+                            <input v-model="todo.name" v-on:blur="updateToDo"/> 
+                        </label>
+
+                        <label> Pursuit: 
+                            <select v-model="todo.pursuit" v-on:change="updateToDo">
+                                <option v-for="pursuit in pursuits" :value="pursuit.id">
+                                    [{ pursuit.icon }] [{ pursuit.name }]
+                                </option>
+                            </select>
+                        </label>
+
+                        <label> Project: 
+                            <select v-model="todo.project" v-on:change="updateToDo">
+                                <option v-for="project in projects" :value="project.id" v-if="!project.complete">
+                                    [{ project.name }] <!-- [{ categpursuitory.name }] -->
+                                </option>
+                            </select>
+                        </label>
+
+                        <label> Waiting On: 
+                            <input v-model="todo.waiting_on" v-on:blur="updateToDo"/> 
+                        </label>
+
+                        <label> Due: 
+                            <input v-model="todo.due_date" type="date" v-on:blur="updateToDo"/> 
+                        </label>
+
+                        <label> Details: 
+                            <textarea v-model="todo.details" v-on:blur="updateToDo" @keydown.tab="textAreaTab" /> 
+                        </label>
+
+                        <div class="priority" v-if="false">
+                                <label> Priority </label>
+                                <label class="inline-label"> <input type="radio" v-model="todo.priority" value=1 v-on:change="updateToDo"> High </label> 
+                                <label class="inline-label"> <input type="radio" v-model="todo.priority" value=2 v-on:change="updateToDo"> Medium </label> 
+                                <label class="inline-label"> <input type="radio" v-model="todo.priority" value=3 v-on:change="updateToDo"> Low </label>
+                        </div>
+
+                        <div> <label>Duration:</label> [{ todo.duration }] </div>
+                        <span class="waiting-on" v-if="false"> Rank: [{todo.rank}] </span>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="toggleStart" v-if="!todo.start_time"> <span class="fas fa-play"></span> Start Task </div>
+                            <div class="clickable details-button" v-on:click="toggleStart" v-if="todo.start_time"> <span class="fas fa-pause"></span> Pause Task </div>
+                            <div class="clickable details-button" v-on:click="toggleStatus('CA')"> <span class="fas fa-ban"></span> Cancel Task </div>
+                            <div class="clickable details-button" v-on:click="deleteToDo"> <span class="fas fa-trash-alt"></span> Delete Task </div>
+                        </div>
+                    </div>
+                </div>`,
+                methods: {
+                    toggleOptions: function() {
+                        this.showOptions = !this.showOptions;
+                    },
+                    toggleStatus: function(newStatus) {
+                        this.todo.status = this.todo.status != 'IN' ? 'IN' : 'CO';
+                        if (newStatus === 'CA') { this.todo.status = 'CA'; }
+                        if (this.todo.status != 'IN'){
+                            newDate = new Date();
+                            timeString = String(newDate.getHours()) + ':' + String(newDate.getMinutes()).padStart(2,'0');
+                            this.todo.finish_time = moment(String(this.date) + " " + timeString);
+                            this.todo.waiting_on = null;
+                            this.showOptions = false;
+                            if (!this.todo.start_time) { this.todo.start_time = moment(newDate); }
+                            this.toggleStart();
+                        }
+                        else { this.todo.finish_time = null; }
+                        this.updateToDo();
+                    },
+                    toggleStart: function() {
+                        if (this.todo.start_time){
+                            var new_duration = moment(new Date()) - moment(this.todo.start_time)
+                            
+                            if (!this.todo.duration) { this.todo.duration = new_duration; }
+                            else { this.todo.duration = moment.duration(this.todo.duration) + moment.duration(new_duration); }
+                            this.todo.duration = parseInt(this.todo.duration / 1000);
+
+                            this.todo.start_time = null;
+                            this.updateToDo();
+                        }
+                        else {
+                            newDate = new Date();
+                            timeString = String(newDate.getHours()) + ':' + String(newDate.getMinutes()).padStart(2,'0');
+                            this.todo.start_time = moment(newDate);
+                            this.updateToDo();
+                        }
+                    },
+                    updateToDo: function() {
+                        if (this.todo.due_date === "") { this.todo.due_date = null;}
+                        myAxios.put("todo" + "/" + this.todo.id, this.todo)
+                            .then(response => this.todo.duration = response.data.duration);
+                    },
+                    deleteToDo: function() {
+                        this.deleted = true;
+                        myAxios.delete("todo/" + this.todo.id);
+                    },
+                    getPursuitFromLoaded: function(id){
+                        return this.pursuits.find(p => p.id === id);
+                    },
+                    textAreaTab: function(event){
+                        if (this.tabindent){
+                            event.preventDefault();
+                            caretLocation = event.target.selectionStart;
+                            event.target.value = [event.target.value.slice(0, caretLocation), '    ', event.target.value.slice(caretLocation)].join('');
+                            event.target.focus();
+                            event.target.selectionEnd = caretLocation + 4;
+                        }
+                    }
+                },
+                computed: {
+                    todoPastDue: function(){
+                        console.log(moment(new Date()))
+                        console.log(moment(this.todo.due_date))
+                        var dateDiff = moment(this.todo.due_date) - moment(new Date());
+                        return dateDiff < 0;
+                    }
+                }
+            });
+            Vue.component('pursuit', {
+                delimiters: ["[{","}]"],
+                props: ['pursuit'],
+                template: 
+                `<div class="pursuit">
+                [{ pursuit.icon }] [{ pursuit.name }] 
+                </div>`,
+            });
+            todoComponent = Vue.component('todo-page', {
+                delimiters: ["[{","}]"],
+                data: function() {
+                    return {
+                        date: dateToString(new Date()),
+                        todos: [],
+                        newTaskName: '',
+                        newTaskPursuit: 1,
+                        newTaskProject: null,
+                        newPursuitName: '',
+                        newPursuitIcon: '',
+                        showNewTask: false,
+                        pursuits: [],
+                        showSettings: true,
+                        hideComplete: false,
+                        hideWaitingOn: false,
+                        pursuitsForFilter: [],
+                        pursuitFilter: null,
+                        projects: [],
+                        projectsForFilter: [],
+                        projectFilter: null,
+                        sortOn: 'rank',
+                        options: optionsStore,
+                    }
+                },
+                computed: {
+                    sortedTasks: function(){
+                        filteredTasks = this.todos;
+                        if (this.pursuitFilter){ filteredTasks = filteredTasks.filter(todo => this.pursuitFilter === todo.pursuit) }
+                        if (this.projectFilter){ filteredTasks = filteredTasks.filter(todo => this.projectFilter === todo.project) }
+                        //if (this.hideComplete) { filteredTasks = filteredTasks.filter(todo => todo.status != 'CO') }
+                        if (this.hideWaitingOn) { filteredTasks = filteredTasks.filter(todo => todo.waiting_on === "" || todo.waiting_on === null) }
+                        return _.orderBy(filteredTasks, this.sortOrder , ['desc', 'asc']);
+                    },
+                    highestRank: function(){
+                        return this.todos.reduce((a,b) => a.rank > b.rank ? a : b).rank
+                    },
+                    sortOrder: function(){
+                        if (this.sortOn == 'rank') { return ['status', /*'priority',*/ 'rank', 'pursuit']; }
+                        else { return ['status', /*'priority',*/ 'pursuit', 'rank']; }
+                    },
+                    dragOptions: function(){
+                        return {'disabled': (this.sortOn != 'rank' || this.options.state.disableDrag) };
+                    },
+                    firstMedium: function(){
+                        return this.sortedTasks.find(todo => todo.priority == 2).id
+                    },
+                    completedTasks: function(){
+                        return this.sortedTasks.filter(t => t.status === 'CO');
+                    },
+                    canceledTasks: function(){
+                        return this.sortedTasks.filter(t => t.status === 'CA');
+                    },
+                    completedPercent: function(){
+                        return Math.round((this.completedTasks.length / (this.sortedTasks.length - this.canceledTasks.length) ) * 100 * 10) / 10; 
+                    }
+                },
+                mounted: function() {
+                    this.getToDoPursuits();
+                    this.getProjects();
+                    this.getToDosByDate(dateToString(new Date()));
+                    document.getElementById("id_date").valueAsDate = new Date();
+                },
+                watch: {
+                    date: function() {
+                        this.getToDosByDate(this.date);
+                    }
+                },
+                methods: {
+                    getToDosByDate: function(date) {
+                        myAxios.get("todo/" + date)
+                            .then(response => this.todos = response.data)
+                    },
+                    confirmNewTaskEntry: function() {
+                        console.log(this.highestRank + 1)
+                        var newTask = {
+                            'name': this.newTaskName,
+                            'pursuit': this.newTaskPursuit,
+                            'project': this.newTaskProject,
+                            'date': this.date,
+                            'status': 'IN',
+                            'rank': this.highestRank + 1
+                        }
+                        this.showNew = false;
+                        this.newToDo(newTask);
+                    },
+                    newToDo: function(newTask) {
+                        myAxios.post("todo", newTask)
+                            .then(response => {
+                                this.todos.push(response.data)
+                                this.newTaskName = '';
+                            });
+                    },
+                    getToDoPursuits: function(){
+                        myAxios.get("pursuits")
+                            .then(response => {
+                                this.pursuits = response.data; 
+                                this.pursuitsForFilter = response.data.slice(0);
+                                this.pursuitsForFilter.unshift({icon:'All', name:''})
+                                this.pursuitFilter = this.pursuitsForFilter[0]
+                            });
+                    },
+                    getProjects: function(){
+                        myAxios.get("projects")
+                            .then(response => {
+                                this.projects = response.data;
+                                this.projects = response.data.slice(0);
+                                this.projects.unshift({name:'N/A', id:null})
+                            });
+                    },
+                    checkMove: function(evt) {
+                        var rankAbove; var rankBelow; var newRank;
+
+                        var taskAbove = this.sortedTasks[evt.newIndex-1];
+                        var taskMoved = this.sortedTasks[evt.newIndex];
+                        var taskBelow = this.sortedTasks[evt.newIndex+1];
+
+                        // Handle if task is moved to the top
+                        if (evt.newIndex == 0) { rankAbove = 0; }
+                        else { rankAbove = this.sortedTasks[evt.newIndex-1].rank; }
+
+                        // Handle if task is moved to the very bottom
+                        if (evt.newIndex == this.todos.length - 1){ rankBelow = this.todos.length; }
+                        else { rankBelow = this.sortedTasks[evt.newIndex+1].rank; }
+
+                        // Handle if task is moved amongst completed tasks
+                        if ((evt.newIndex != 0 && ['CO','CA'].indexOf(taskAbove.status) != -1) || ['CO','CA'].indexOf(taskBelow.status) != -1){ newRank = this.highestRank + 1; }
+                        else { newRank = ((rankBelow + rankAbove) / 2.0); }
+                        
+                        taskMoved.rank = newRank;
+                        evt.item.__vue__.updateToDo();
+                        //var prevToDo = evt.item.previousSibling.__vue__.todo;
+                        //var nextToDo = evt.item.nextSibling.__vue__.todo;
+                        //var thisToDo = evt.item.__vue__.todo;
+                        //console.log(prevToDo, thisToDo, nextToDo);
+                    },
+                },
+                template: 
+                `
+                <div>
+                    <h1>To-Do</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label class="inline-label">Completed Tasks: </label>[{ completedTasks.length }]/[{ sortedTasks.length - canceledTasks.length }] ([{ completedPercent }]%)
+                    <div id="filters">
+                        <h2>Filters</h2>
+                        
+                        <label> Hide Complete
+                            <input type="checkbox" v-model="hideComplete">
+                        </label>
+                            
+                        <label> Hide Waiting On
+                            <input type="checkbox" v-model="hideWaitingOn">
+                        </label>
+
+                        <label> Pursuit: 
+                            <select v-model="pursuitFilter">
+                                <option v-for="pursuit in pursuitsForFilter" :value="pursuit.id">
+                                    [{ pursuit.icon }] [{ pursuit.name }]
+                                </option>
+                            </select>
+                        </label>
+                        <label> Project: 
+                            <select v-model="projectFilter">
+                                <option v-for="project in projects" :value="project.id">
+                                    [{ project.name }] 
+                                </option>
+                            </select>
+                        </label>
+
+                        <label class="inline-label"> <input type="radio" v-model="sortOn" value="rank"> Rank </label>
+                        <label class="inline-label">  <input type="radio" v-model="sortOn" value="pursuit"> Pursuit </label>
+                        
+                    </div>
+
+                    <draggable :list="sortedTasks" class="dragArea object-list" @end="checkMove" :options="dragOptions">
+                        <todo-item v-for="item in sortedTasks"
+                        :todo="item"
+                        :key="item.id"
+                        :pursuits="pursuits"
+                        :projects="projects"
+                        :date="date"
+                        :draggable="!dragOptions.disabled"
+                        :tabindent="options.state.tabIndent"
+                        v-if="item.status != 'CO' || hideComplete === false">
+                        </todo-item>
+                    </draggable>
+                        
+                    <div id="newTask" v-if="showNewTask">
+                        <input v-model="newTaskName" /> 
+                        <label> Pursuit: 
+                            <select v-model="newTaskPursuit">
+                                <option v-for="pursuit in pursuits" :value="pursuit.id">
+                                    [{ pursuit.icon }] [{ pursuit.name }]
+                                </option>
+                            </select>
+                        </label>
+                        <label> Project: 
+                            <select v-model="newTaskProject">
+                                <option v-for="project in projects" :value="project.id" v-if="!project.complete">
+                                    [{ project.name }]
+                                </option>
+                            </select>
+                        </label>
+                        <button v-on:click="confirmNewTaskEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewTask = !showNewTask"> New Task </button>
+                    </div>
+
+                    <side-buttons :pursuits="true" :projects="true"></side-buttons>
+                </div> 
+                `
+            });
+
+            // Pursuit Progress
+            Vue.component('pursuit-progress-item', {
+                mixins: [entryHandlingItemMixin],
+                props: ['pursuit', 'date',],
+                mounted: function(){
+                    this.entry['date'] = this.date;
+                    this.entry.pursuit = this.pursuit.id
+                },
+                methods: {
+                    makeOrUpdateEntry: function() {
+                        if (this.entry.id) {
+                            this.updateEntry(); 
+                        }
+                        else {
+                            myAxios.post("pursuitprogress", this.entry)
+                        }
+                    }
+                },
+                template: 
+                `<div class="pursuit-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                    <span>✎</span>
+                    </span>
+                    
+                    <div class="pursuit-info ">
+                        <span class="detail-column-25"> [{ pursuit.icon }] [{ pursuit.name }] </span>
+
+                        <span class="pursuit-details-display" v-if="!showOptions">
+                            [{ entry.description }] 
+                        </span>
+
+                        <textarea class="pursuit-details-entry" v-model="entry.description" v-on:blur="makeOrUpdateEntry" v-if="showOptions">
+                        </textarea>
+                    </div>
+                    
+                    </div>
+                </div>`,
+            });
+            pursuitprogressComponent = Vue.component('pursuitprogress-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "pursuitprogress", pursuits: [],} },
+                computed: {
+                    sortedPursuitProgresss: function(){
+                        return this.entries;
+                    }
+                },
+                mounted: function() {
+                    this.getAllPursuits();
+                },
+                methods: {
+                    getAllPursuits: function(){
+                        myAxios.get("pursuits")
+                            .then(response => this.pursuits = response.data);
+                    },
+                    getPursuitProgressByPursuit: function(pursuit){
+                        var found = this.entries.find(pp => pp.pursuit === pursuit)
+                        if (!found) {
+                            found = {'pursuit': null, 'description': null }
+                        }
+                        return found;
+                    }
+                },
+                template:
+                `
+                <div>
+                    <h1>Pursuit Progress</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="pursuit-list" class="object-list">
+                        <pursuit-progress-item v-for="item in pursuits"
+                        :entry="getPursuitProgressByPursuit(item.id)"
+                        :pursuit="item"
+                        :key="item.id"
+                        :date="date"
+                        :endpoint="endpoint">
+                        </pursuit-progress-item>
+                    </div>
+
+                    <side-buttons :pursuits="true" ></side-buttons>
+                </div>
+                `
+            });
+
+            // Literature
+            Vue.component('literature-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="literature-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="literature-info ">
+                        
+                        <div class="literature-title item-body-element"> [{ entry.title }] 
+                        <span class="literature-type item-top-detail"> [{ entry.type }] </span>
+                        <span class="literature-title item-top-detail"> [{ entry.author }] </span>
+                        <span class="literature-title item-top-detail"> <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="15" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                        </div>
+                        
+                        <div class="literature-review art-review">
+                                [{ entry.review }] 
+                        </div>
+
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
+                        <label>Up To Page: <input type="number" v-model="entry.up_to_page" v-on:blur="updateEntry"/> </label>
+                        <label>Type: <input type="text" v-model="entry.type" v-on:blur="updateEntry"/> </label>
+                        <label>Author: <input type="text" v-model="entry.author" v-on:blur="updateEntry"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Literature </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            literatureComponent = Vue.component('literature-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "literature",} },
+                template:
+                `
+                <div>
+                    <h1>Literature</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="literature-list" class="object-list">
+                        <literature-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </literature-item>
+                    </div>
+                    
+                    <div id="newLiterature" v-if="showNewEntry">
+                        <label>Title: <input type="text" v-model="newEntry.title" /> </label>
+                        <label>Up To Page: <input type="number" v-model="newEntry.up_to_page" /> </label>
+                        <label>Type: <input type="text" v-model="newEntry.type"/> </label>
+                        <label>Author: <input type="text" v-model="newEntry.author"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Literature </button>
+                    </div>
+
+                    <side-buttons :lit="true" ></side-buttons>
+                </div>
+                `
+            });
+
+            // Film
+            Vue.component('film-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="film-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="film-info ">
+                        
+                        <div class="film-title item-body-element"> [{ entry.title }] 
+                        <span class="film-title item-top-detail"> [{ entry.director }] </span>
+                        <span class="film-title item-top-detail"> <star-rating v-model="entry.rating"  :star-size="15" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                        </div>
+                        
+                        <div class="film-review art-review">
+                                [{ entry.review }] 
+                        </div>
+
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
+                        <label>Director: <input type="text" v-model="entry.director" v-on:blur="updateEntry"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Film </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            filmComponent = Vue.component('film-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "film",} },
+                template:
+                `
+                <div>
+                    <h1>Films</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="film-list" class="object-list">
+                        <film-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </film-item>
+                    </div>
+                    
+                    <div id="newFilm" v-if="showNewEntry">
+                        <label>Title: <input type="text" v-model="newEntry.title" /> </label>
+                        <label>Director: <input type="text" v-model="newEntry.director"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Film </button>
+                    </div>
+
+                    <side-buttons :film="true" ></side-buttons>
+
+                </div>
+                `
+            });
+            
+            // Television
+            Vue.component('television-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="television-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="television-info ">
+                        
+                        <div class="television-series item-body-element"> [{ entry.series }] 
+                        <span class="television-series item-top-detail"> [{ entry.episode }] </span>
+                        <span class="television-series item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                        </div>
+                        
+                        <div class="television-review art-review">
+                                [{ entry.review }] 
+                        </div>
+
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Series: <input type="text" v-model="entry.series" v-on:blur="updateEntry"/> </label>
+                        <label>Episode: <input type="text" v-model="entry.episode" v-on:blur="updateEntry"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Television </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            televisionComponent = Vue.component('television-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "television",} },
+                template:
+                `
+                <div>
+                    <h1>Television</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="television-list" class="object-list">
+                        <television-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </television-item>
+                    </div>
+                    
+                    <div id="newTelevision" v-if="showNewEntry">
+                        <label>Series: <input type="text" v-model="newEntry.series" /> </label>
+                        <label>Episode: <input type="text" v-model="newEntry.episode"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Television </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // Board Games
+            Vue.component('boardgame-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="boardgame-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="boardgame-info ">
+                        
+                        <div class="boardgame-title item-body-element"> [{ entry.title }] 
+                        <span class="boardgame-title item-top-detail"> [{ entry.creator }] </span>
+                        <span class="boardgame-title item-top-detail"> <star-rating v-model="entry.rating"  :star-size="15" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                        </div>
+                        
+                        <div class="boardgame-review art-review">
+                                [{ entry.review }] 
+                        </div>
+
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
+                        <label>Creator: <input type="text" v-model="entry.creator" v-on:blur="updateEntry"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete BoardGame </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            bgComponent = Vue.component('boardgame-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "boardgame",} },
+                template:
+                `
+                <div>
+                    <h1>Board Games</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="boardgame-list" class="object-list">
+                        <boardgame-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </boardgame-item>
+                    </div>
+                    
+                    <div id="newBoardGame" v-if="showNewEntry">
+                        <label>Title: <input type="text" v-model="newEntry.title" /> </label>
+                        <label>Creator: <input type="text" v-model="newEntry.creator"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New BoardGame </button>
+                    </div>
+
+                    <side-buttons :boardgames="true" ></side-buttons>
+                </div>
+            `
+            });
+
+            // Video Games
+            Vue.component('videogame-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="videogame-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="videogame-info ">
+                        
+                        <div class="videogame-title item-body-element"> [{ entry.title }] 
+                        <span class="videogame-console item-top-detail"> [{ entry.console }] </span>
+                        <span class="videogame-title item-top-detail"> [{ entry.developer }] </span>
+                        <span class="videogame-title item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                        </div>
+                        
+                        <div class="videogame-review art-review">
+                                [{ entry.review }] 
+                        </div>
+
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
+                        <label>Console: <input type="text" v-model="entry.console" v-on:blur="updateEntry"/> </label>
+                        <label>Developer: <input type="text" v-model="entry.developer" v-on:blur="updateEntry"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete VideoGame </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            vgComponent = Vue.component('videogame-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "videogame",} },
+                template: 
+                    `
+                    <div id="videogame-page">
+
+                        <h1>Video Games</h1>
+                        <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                        <div id="videogame-list" class="object-list">
+                        <videogame-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </videogame-item>
+                        </div>
+
+                        <div id="newVideoGame" v-if="showNewEntry">
+                        <label>Title: <input type="text" v-model="newEntry.title" /> </label>
+                        <label>Console: <input type="text" v-model="newEntry.console"/> </label>
+                        <label>Developer: <input type="text" v-model="newEntry.developer"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                        </div>
+
+                        <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New VideoGame </button>
+
+                        </div>
+                    </div>
+                    `
+            });
+
+            // Music
+            Vue.component('music-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="music-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="music-info ">
+                        
+                        <div class="music-title item-body-element"> [{ entry.title }] 
+                        <span class="music-title item-top-detail"> [{ entry.artist }] </span>
+                        <span class="music-title item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                        </div>
+                        
+                        <div class="music-review art-review">
+                                [{ entry.review }] 
+                        </div>
+
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
+                        <label>Artist: <input type="text" v-model="entry.artist" v-on:blur="updateEntry"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Music </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            musicComponent = Vue.component('music-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "music",} },
+                template:
+                `
+                <div>
+                    <h1>Music</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="music-list" class="object-list">
+                        <music-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </music-item>
+                    </div>
+                    
+                    <div id="newMusic" v-if="showNewEntry">
+                        <label>Title: <input type="text" v-model="newEntry.title" /> </label>
+                        <label>Artist: <input type="text" v-model="newEntry.artist"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Music </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // Podcast
+            Vue.component('podcast-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="podcast-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="podcast-info ">
+                        
+                        <div class="podcast-series item-body-element"> [{ entry.series }] 
+                        <span class="podcast-series item-top-detail"> [{ entry.episode }] </span>
+                        <span class="podcast-series item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                        </div>
+                        
+                        <div class="podcast-review art-review">
+                                [{ entry.review }] 
+                        </div>
+
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Series: <input type="text" v-model="entry.series" v-on:blur="updateEntry"/> </label>
+                        <label>Episode: <input type="text" v-model="entry.episode" v-on:blur="updateEntry"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Podcast </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            podcastComponent = Vue.component('podcast-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "podcast",} },
+                template:
+                `
+                <div>
+                    <h1>Podcasts</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="podcast-list" class="object-list">
+                        <podcast-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </podcast-item>
+                    </div>
+                    
+                    <div id="newPodcast" v-if="showNewEntry">
+                        <label>Series: <input type="text" v-model="newEntry.series" /> </label>
+                        <label>Episode: <input type="text" v-model="newEntry.episode"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Podcast </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // Beer
+            Vue.component('beer-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="beer-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="beer-info ">
+                        
+                        <div class="beer-name item-body-element"> [{ entry.name }] 
+                        <span class="beer-name item-top-detail"> [{ entry.brewery }] </span>
+                        <span class="beer-name item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                        </div>
+                        
+                        <div class="beer-review art-review">
+                                [{ entry.review }] 
+                        </div>
+
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Name: <input type="text" v-model="entry.name" v-on:blur="updateEntry"/> </label>
+                        <label>Brewery: <input type="text" v-model="entry.brewery" v-on:blur="updateEntry"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Beer </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            beerComponent = Vue.component('beer-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "beer",} },
+                template:
+                `
+                <div>
+                    <h1>Beer</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="beer-list" class="object-list">
+                        <beer-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </beer-item>
+                    </div>
+                    
+                    <div id="newBeer" v-if="showNewEntry">
+                        <label>Name: <input type="text" v-model="newEntry.name" /> </label>
+                        <label>Brewery: <input type="text" v-model="newEntry.brewery"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Beer </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // Wine
+            Vue.component('wine-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="wine-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="wine-info ">
+                        
+                        <div class="wine-name item-body-element"> [{ entry.name }] 
+                        <span class="wine-name item-top-detail"> [{ entry.vineyard }] </span>
+                        <span class="wine-name item-top-detail"> <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="15" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                        </div>
+                        
+                        <div class="wine-review art-review">
+                                [{ entry.review }] 
+                        </div>
+
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Name: <input type="text" v-model="entry.name" v-on:blur="updateEntry"/> </label>
+                        <label>Vineyard: <input type="text" v-model="entry.vineyard" v-on:blur="updateEntry"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Wine </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            wineComponent = Vue.component('wine-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "wine",} },
+                template:
+                `
+                <div>
+                    <h1>Wine</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="wine-list" class="object-list">
+                        <wine-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </wine-item>
+                    </div>
+                    
+                    <div id="newWine" v-if="showNewEntry">
+                        <label>Name: <input type="text" v-model="newEntry.name" /> </label>
+                        <label>Vineyard: <input type="text" v-model="newEntry.vineyard"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Wine </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // Cheese
+            Vue.component('cheese-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="cheese-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="cheese-info ">
+                        
+                        <div class="cheese-name item-body-element"> [{ entry.name }] 
+                        <span class="cheese-name item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                        </div>
+                        
+                        <div class="cheese-review art-review">
+                                [{ entry.review }] 
+                        </div>
+
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Name: <input type="text" v-model="entry.name" v-on:blur="updateEntry"/> </label>
+                        <label>Vineyard: <input type="text" v-model="entry.vineyard" v-on:blur="updateEntry"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Cheese </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            cheeseComponent = Vue.component('cheese-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "cheese",} },
+                template:
+                `
+                <div>
+                    <h1>Cheese</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="cheese-list" class="object-list">
+                        <cheese-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </cheese-item>
+                    </div>
+                    
+                    <div id="newCheese" v-if="showNewEntry">
+                        <label>Name: <input type="text" v-model="newEntry.name" /> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Cheese </button>
+                    </div>
+                </div>
+                `
+            });
+            
+            // FilmWish
+            Vue.component('filmwish', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `
+                <div v-if="!deleted">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <span >
+                        <span> [{ entry.title }] </span>
+                        <span>[{ entry.director }] </span>
+                    </span>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label> Title:  <input v-model="entry.title" v-on:blur="updateEntry"/>  </label>
+                        <label> Director: <input v-model="entry.director" v-on:blur="updateEntry" /> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete FilmWish </div>
+                        </div>
+                    </div>
+                </div>
+                
+                `,
+            });
+            filmwishComponent = Vue.component('filmwish-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "filmwish", noMixinMounted: true, } },
+                mounted: function() {
+                    myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
+                },
+                template:
+                `
+                <div>
+                    <h1> Movies To Watch </h1>
+                    <div id="object-list">
+                        <filmwish v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint"></filmwish>
+                    
+                        <button v-on:click="showNewEntry = !showNewEntry"> New FilmWish </button>
+                    
+                    </div>
+                    <div id="newFilmWish" v-if="showNewEntry">
+                        <label>Title <input v-model="newEntry.title" width=25% /> </label>
+                        <label>Director <input v-model="newEntry.director" width=25% /> </label>
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+                </div>
+                `
+            });
+            
+            // BoardGameWish
+            Vue.component('boardgamewish', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `
+                <div v-if="!deleted">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <span >
+                        <span> [{ entry.title }] </span>
+                        <span>[{ entry.creator }] </span>
+                    </span>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label> Title:  <input v-model="entry.title" v-on:blur="updateEntry"/>  </label>
+                        <label> Creator: <input v-model="entry.creator" v-on:blur="updateEntry" /> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete BoardGameWish </div>
+                        </div>
+                    </div>
+                </div>
+                
+                `,
+            });
+            boardgamewishComponent = Vue.component('boardgamewish-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "boardgamewish", noMixinMounted: true, } },
+                mounted: function() {
+                    myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
+                },
+                template:
+                `
+                <div>
+                    <h1> Board Games To Play </h1>
+                    <div id="object-list">
+                        <boardgamewish v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint"></boardgamewish>
+                    
+                        <button v-on:click="showNewEntry = !showNewEntry"> New BoardGameWish </button>
+                    
+                    </div>
+                    <div id="newBoardGameWish" v-if="showNewEntry">
+                        <label>Title <input v-model="newEntry.title" width=25% /> </label>
+                        <label>Creator <input v-model="newEntry.director" width=25% /> </label>
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+                </div>
+                `
+            });
+            
+            // LiteratureWish
+            Vue.component('literaturewish', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `
+                <div v-if="!deleted">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <span >
+                        <span> [{ entry.title }] </span>
+                        <span>[{ entry.author }] </span>
+                    </span>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label> Title:  <input v-model="entry.title" v-on:blur="updateEntry"/>  </label>
+                        <label> Author: <input v-model="entry.author" v-on:blur="updateEntry" /> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete LiteratureWish </div>
+                        </div>
+                    </div>
+                </div>
+                
+                `,
+            });
+            literaturewishComponent = Vue.component('literaturewish-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "literaturewish", noMixinMounted: true, } },
+                mounted: function() {
+                    myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
+                },
+                template:
+                `
+                <div>
+                    <h1> Books To Read </h1>
+                    <div id="object-list">
+                        <literaturewish v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint"></literaturewish>
+                    
+                        <button v-on:click="showNewEntry = !showNewEntry"> New LiteratureWish </button>
+                    
+                    </div>
+                    <div id="newLiteratureWish" v-if="showNewEntry">
+                        <label>Title <input v-model="newEntry.title" width=25% /> </label>
+                        <label>Author <input v-model="newEntry.director" width=25% /> </label>
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+                </div>
+                `
+            });
+            
+            // Cooking
+            Vue.component('cooking-item', {
+                mixins: [entryHandlingItemMixin],
+                props: ['recipes'],
+                template: 
+                `<div  v-if="!deleted" class="cooking-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="cooking-info ">
+                        <div class="cooking-name item-body-element"> [{ getRecipeFromLoaded(entry.recipe).name }] 
+                        <span class="cooking-name item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                        </div>
+                        
+                        <div class="cooking-review art-review">
+                                [{ entry.review }] 
+                        </div>
+
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label> Recipe: 
+                            <select v-model="entry.recipe" v-on:change="updateEntry">
+                                <option v-for="recipe in recipes" :value="recipe.id">
+                                    [{ recipe.name }]
+                                </option>
+                            </select>
+                        </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Cooking </div>
+                        </div>
+                    </div>
+                </div>`,
+                methods: {getRecipeFromLoaded: function(id){ return this.recipes.find(p => p.id === id); }, }
+            });
+            cookingComponent = Vue.component('cooking-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "cooking", recipes: [], } },
+                mounted: function() { myAxios.get("recipes").then(response => this.recipes = convertRatings(response.data)); },
+                methods: { getRecipeFromLoaded: function(id){ return this.recipes.find(p => p.id === id); }, },
+                template:
+                `
+                <div>
+                    <h1>Cooking</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="cooking-list" class="object-list">
+                        <cooking-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint"
+                        :recipes="recipes">
+                        </cooking-item>
+                    </div>
+                    
+                    <div id="newCooking" v-if="showNewEntry">
+                        <label> Recipe: 
+                            <select v-model="newEntry.recipe">
+                                <option v-for="recipe in recipes" :value="recipe.id">
+                                    [{ recipe.name }]
+                                </option>
+                            </select>
+                        </label>
+                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Cooking </button>
+                    </div>
+
+                    <side-buttons :foods="true" :recipes="true" > </side-buttons>
+                </div>
+                `
+            });
+
+            // Groceries
+            Vue.component('grocerypurchase-item', {
+                mixins: [entryHandlingItemMixin],
+                props: ['fooditems'],
+                template: 
+                `<div  v-if="!deleted" class="grocerypurchase-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="grocerypurchase-info ">
+                        <span class="item-3-col"> <b> [{ (entry.price_per_unit - entry.discount_per_unit) * entry.qty | toCurrency}] </b> </span>
+                        <span class="item-3-col"> 
+                            <b> [{ entry.qty }]</b>
+                            x [{ getFoodItemFromLoaded(entry.food_item).name }]  
+                            ([{ getFoodItemFromLoaded(entry.food_item).serving_size_qty * entry.serving_count }] 
+                            [{ getFoodItemFromLoaded(entry.food_item).serving_size_unit }])
+                        </span>
+                        <span class="item-top-detail"> [{ entry.store }] </span>
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label> Item: 
+                            <select v-model="entry.food_item" v-on:change="updateEntry">
+                                <option v-for="fooditem in fooditems" :value="fooditem.id">
+                                    [{ fooditem.name }]
+                                </option>
+                            </select>
+                        </label>
+                        
+                        <label>Servings per Unit: <input v-model="entry.serving_count" v-on:change="updateEntry" /> </label>
+                        <label>Unit Price: <input v-model="entry.price_per_unit" v-on:change="updateEntry"/> </label>
+                        <label>Unit Discount: <input v-model="entry.discount_per_unit" v-on:change="updateEntry" /> </label>
+                        <label>Unit Quantity: <input v-model="entry.qty" v-on:change="updateEntry" /> </label>
+                        <br>
+                        <label>Store: <input v-model="entry.store" v-on:change="updateEntry" /> </label>
+                        <label>Receipt Name: <input v-model="entry.receipt_name" v-on:change="updateEntry" /> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete GroceryPurchase </div>
+                        </div>
+                    </div>
+                </div>`,
+                methods: { getFoodItemFromLoaded: function(id){ return this.fooditems.find(p => p.id === id); },
+                }
+            });
+            groceriesComponent = Vue.component('groceries-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "grocerypurchase",  fooditems: [], barcode: "" } },
+                mounted: function() { myAxios.get("foodItems").then(response => this.fooditems = convertRatings(response.data)); },
+                watch: {
+                    barcode: function() {
+                        var foundFood = this.findFoodItemWithBarcode(this.barcode);
+                        if (foundFood){ this.newGroceryPurchaseEntry.food_item = foundFood.id; }
+                    }
+                },
+                methods: {
+                    getFoodItemFromLoaded: function(id){
+                        return this.fooditems.find(p => p.id === id);
+                    },
+                    findFoodItemWithBarcode: function(barcode){
+                        return this.fooditems.find(p => p.barcode === barcode)
+                    }
+                },
+                template:
+                `
+                <div>
+                    <h1>Groceries</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="grocerypurchase-list" class="object-list">
+                        <grocerypurchase-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint"
+                        :fooditems="fooditems">
+                        </grocerypurchase-item>
+                    </div>
+                    
+                    <div id="newGroceryPurchase" v-if="showNewEntry">
+                        <label> Item: 
+                            <select v-model="newEntry.food_item">
+                                <option v-for="fooditem in fooditems" :value="fooditem.id">
+                                    [{ fooditem.name }] ([{ fooditem.serving_size_qty }] [{ fooditem.serving_size_unit }])
+                                </option>
+                            </select>
+                        </label>
+                        
+                        <label>Servings Per Unit: <input v-model="newEntry.serving_count" /> </label>
+                        <label>Unit Price: <input v-model="newEntry.price_per_unit" /> </label>
+                        <label>Unit Discount: <input v-model="newEntry.discount_per_unit" /> </label>
+                        <label>Unit Quantity: <input v-model="newEntry.qty" /> </label>
+                        <br>
+                        <label>Barcode: <input v-model="barcode" /> </label>
+                        <label>Store: <input v-model="newEntry.store" /> </label>
+                        <label>Receipt Name: <input v-model="newEntry.receipt_name" /> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New GroceryPurchase </button>
+                    </div>
+
+                    <side-buttons :foods="true" > </side-buttons>
+                </div>
+                `
+            });
+
+            // Meals
+            Vue.component('meal-item', {
+                mixins: [entryHandlingItemMixin],
+                props: ['fooditems','recipes'],
+                template: 
+                `<div  v-if="!deleted" class="meal-item">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="meal-info">
+                        <span class="item-top-detail">⏰ [{ entry.eat_time | formatTime }] </span>
+                        <span class="item-top-detail">[{ entry.calories }] Cal</span>
+                        <span class="item-top-detail">$[{ entry.cost }] </span>
+                        <span class="item-top-detail">[{ entry.rating }] ★</span>
+                        <span class="item-top-detail">[{ entry.location }] </span>
+                        <div class="item-main-body">
+                            <ul>
+                                <li v-for="food in entry.foods"> [{ getFoodItemFromLoaded(food).name }] </li>
+                                <li v-for="recipe in entry.recipes"> [{ getRecipeFromLoaded(recipe).name }] </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Cost: <input type="number" min="0.01" step="0.01" v-model="entry.cost" /> </label>
+                        <label>Time Ate: <input type="time" v-model="entry.eat_time" /> </label>
+                        <label>Location: <input v-model="entry.location" /> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Meal </div>
+                        </div>
+                    </div>
+                </div>`,
+                methods: {
+                    getFoodItemFromLoaded: function(id){
+                        return this.fooditems.find(p => p.id === id);
+                    },
+                    getRecipeFromLoaded: function(id){
+                        return this.recipes.find(p => p.id === id);
+                    },
+                }
+            });
+            mealsComponent = Vue.component('meals-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() {
+                    return {
+                        newEntry: {
+                            recipes: [],
+                            foods: []
+                        },
+                        endpoint: "meal",
+                        recipes: [],
+                        fooditems: [],
+                        newMealFoodItem: {},
+                        newMealRecipe: {},
+                    }
+                },
+                mounted: function() {
+                    myAxios.get("recipes").then(response => this.recipes = convertRatings(response.data));
+                    myAxios.get("foodItems").then(response => this.fooditems = convertRatings(response.data));
+                },
+                methods: {
+                    getLabel: function(item){ return item.name },
+                    addNewMealFoodItem: function() { 
+                        console.log("add food");
+                        this.newEntry.foods.push(this.newMealFoodItem); 
+                    },
+                    addNewMealRecipe: function() { 
+                        this.newEntry.recipes.push(this.newMealRecipe); 
+                    },
+                    getFoodItemFromLoaded: function(id){ return this.fooditems.find(p => p.id === id); },
+                    getRecipeFromLoaded: function(id){ return this.recipes.find(p => p.id === id); },
+                },
+                template:
+                `
+                <div>
+                    <h1>Meals</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="meal-list" class="object-list">
+                        <meal-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint"
+                        v-bind:recipes="recipes"
+                        v-bind:fooditems="fooditems">
+                        </meal-item>
+                    </div>
+                    
+                    <div id="newMeal" v-if="showNewEntry">
+
+                        <div v-for="fooditem in newEntry.foods">
+                            <span> [{ getFoodItemFromLoaded(fooditem).name }] </span>
+                        </div>
+                        <div v-for="recipe in newEntry.recipes">
+                            <span> [{ getRecipeFromLoaded(recipe).name }] </span>
+                        </div>
+                        
+                        <div>
+                            <label> Food: 
+                                <select v-model="newMealFoodItem">
+                                    <option v-for="fooditem in fooditems" :value="fooditem.id">
+                                        [{ fooditem.name }] ([{ fooditem.serving_size_qty }] [{ fooditem.serving_size_unit }])
+                                    </option>
+                                </select>
+                                <button v-on:click="addNewMealFoodItem"> + Food </button>
+                            </label>
+                        </div>
+
+                        <div>
+                            <label> Recipe: 
+                                <select v-model="newMealRecipe">
+                                    <option v-for="recipe in recipes" :value="recipe.id">
+                                        [{ recipe.name }]
+                                    </option>
+                                </select>
+                                <button v-on:click="addNewMealRecipe"> + Recipe </button>
+                            </label>
+                        </div>
+
+                        <label>Cost: <input type="number" v-model="newEntry.cost" /> </label>
+                        <label>Time Ate: <input type="time" v-model="newEntry.eat_time" /> </label>
+                        <label>Location: <input v-model="newEntry.location" /> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Meal </button>
+                    </div>
+
+                    <side-buttons :foods="true" :recipes="true" > </side-buttons>
+                </div>
+                `
+            });
+
+            // Travel
+            Vue.component('travel-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div  v-if="!deleted" class="travel-item item-main-body">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
+                    style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <div class="travel-info ">
+                        
+                        <div class="travel-name item-body-element"> [{ entry.name }] 
+                        <span class="travel-type item-top-detail"> [{ entry.location_type }] </span>
+                        <span class="travel-lat item-top-detail"> [{ entry.latitude }] </span>
+                        <span class="travel-long item-top-detail"> [{ entry.longitude }] </span>
+                        </div>
+
+                    </div>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Name: <input type="text" v-model="entry.name" v-on:blur="updateEntry"/> </label>
+                        <label>Location Type: <input type="text" v-model="entry.location_type" v-on:blur="updateEntry"/> </label>
+                        <label>Latitude: <input type="text" v-model="entry.latitude" v-on:blur="updateEntry"/> </label>
+                        <label>Longitude: <input type="text" v-model="entry.longitude" v-on:blur="updateEntry"/> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Travel </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            travelComponent = Vue.component('travel-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "travel", mapMarkers: [], }
+                },
+                mounted: function() { this.loadGoogleMap(); },
+                methods: {
+                    loadGoogleMap: function() {
+                        var script = document.createElement('script');
+                        script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyDctazL-k5ESKdrrtFn7TBRzy0YOkbb96o&callback=initMap';
+                        var travelsection = document.getElementById("travel-section");
+                        travelsection.appendChild(script);
+                    },
+                    plotTravels: function() {
+                        // Erase markers
+                        this.mapMarkers.forEach(marker => {
+                            marker.setMap(null);
+                            marker = null;
+                        });
+                        this.mapMarkers = [];
+
+                        // Plot markers on map
+                        this.entries.forEach(travel => {
+                            console.log(JSON.stringify(travel));
+                            console.log(map);
+                            let coords = {lat: parseFloat(travel.latitude), lng: parseFloat(travel.longitude)};
+                            this.mapMarkers.push(new google.maps.Marker({position: coords, map: map}));
+                        });
+                    }
+                },
+                template:
+                `
+                <div id="travel-section">
+                    <h1>Travel</h1>
+                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <div id="travel-list" class="object-list">
+                        <travel-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </travel-item>
+                    </div>
+                    
+
+                    <div id="newTravel" v-if="showNewEntry">
+                    
+                        <label>Name: <input type="text" v-model="newEntry.name" /> </label>
+                        <label>Location Type: <input type="text" v-model="newEntry.location_type"/> </label>
+                        <label>Latitude: <input type="text" v-model="newEntry.latitude" /> </label>
+                        <label>Longitude: <input type="text" v-model="newEntry.longitude" /> </label>
+
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Travel </button>
+                    </div>
+                    
+                    <div id="map"></div>
+                </div>
+                `
+            });
+
+            // Modules
+            Vue.component('module', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div class="module-item">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions" style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <span class="project-info">
+                        <div class="project-header"> 
+                                <input type="checkbox" v-model="entry.display" v-on:change="updateEntry"><span class="project-name"> [{ entry.name }] </span> 
+                        </div>
+                    </span>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Section: <input v-model="entry.category" v-on:blur="updateEntry" /> </label>
+                        <label>Color: <input v-model="entry.background_color" v-on:blur="updateEntry" /> </label>
+                        <label>Color (Complete): <input v-model="entry.background_color_complete" v-on:blur="updateEntry" /> </label>
+                        <label class="inline-label"> <input type="radio" v-model="entry.icon_source" value="UN" v-on:change="updateEntry"> Unicode </label> <input v-model="entry.icon_unicode" v-on:blur="updateEntry" size="3"/>
+                        <br>
+                        <label class="inline-label">  <input type="radio" v-model="entry.icon_source" value="FA" v-on:change="updateEntry"> FontAwesome </label> <input v-model="entry.icon_font_awesome" v-on:blur="updateEntry" /> 
+                    </div>
+                </div>`,
+            });
+            moduleComponent = Vue.component('module-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "modules", noMixinMounted: true, } },
+                mounted: function() {
+                    myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
+                },
+                template:
+                `
+                <div id="app">
+                    <div id="module-list" class="object-list">
+                        <module v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint"></module>
+                    </div>
+                </div>
+                `
+            });
+
+            // Projects
+            Vue.component('project', {
+                mixins: [entryHandlingItemMixin],
+                props: ['pursuits'],
+                template: 
+                `<div class="project-item">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions" style="float:left;">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <span class="project-info">
+                        <div class="project-header"> 
+                            <span class="project-name"> [{ entry.name }] </span> 
+                            <span v-if="entry.pursuit && pursuits[entry.pursuit-1]" class="project-pursuit">  ([{ pursuits[entry.pursuit-1].icon }] [{ pursuits[entry.pursuit-1].name }])  </span>
+                        </div> 
+                        
+                        <span class="project-description">[{ entry.description }] </span>
+                    </span>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Name: <input v-model="entry.name" v-on:blur="updateEntry" /> </label>
+                        <textarea v-model="entry.description" v-on:blur="updateEntry"></textarea>
+                        <label> Pursuit: 
+                            <select v-model="entry.pursuit" v-on:change="updateEntry">
+                                <option v-for="pursuit in pursuits" :value="pursuit.id">
+                                    [{ pursuit.icon }] <!-- [{ pursuit.name }] -->
+                                </option>
+                            </select>
+                        </label>
+                        <label> <input type="checkbox" v-model="entry.complete" v-on:change="updateEntry"> Complete </label>
+                    </div>
+                </div>`,
+                methods: {
+                    updateProject: function() {
+                        console.log(JSON.stringify(this.project))
+                        fetch(`http://localhost:8000/api/project/${this.project.id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Accept': 'application/json, text/plain, */*',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.project),
+                        })
+                        .then(
+                            response => console.log(response),
+                            () => console.log('OOPS')
+                        );
+                    },
+                }
+            });
+            projectComponent = Vue.component('project-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "projects", noMixinMounted: true, pursuits: [],} },
+                mounted: function() {
+                    myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
+                    myAxios.get("pursuits").then(response => this.pursuits = convertRatings(response.data));
+                },
+                template:
+                `
+                <div>
+                    <div id="object-list" class="object-list">
+                        <project v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint"
+                        :pursuits="pursuits"></project>
+                    
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Project </button>
+                    
+                    </div>
+                    <div id="newProject" v-if="showNewEntry">
+                        <label>Name <input v-model="newEntry.name" width=25% /> </label>
+                        <label>Description <textarea v-model="newEntry.description"></textarea> </label>
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+                    
+                    <side-buttons :pursuits="true" ></side-buttons>
+                </div>
+                `
+            });
+
+            // Quizzes
+            Vue.component('quiz', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div class="quiz">
+                    <span class="quiz-name"><b>[{ entry.name }]</b></span>
+                    <span class="quiz-url"><a :href="entry.url">[{ entry.url }]</a></span>
+                    <span class="quiz-records">[{ entry.total_records }] records</span>
+                </div>`,
+            });
+            quizComponent = Vue.component('quiz-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "quizzes", noMixinMounted: true, } },
+                mounted: function() {
+                    myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
+                },
+                template:
+                `
+                <div>
+                    <div id="object-list">
+                        <quiz v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint"></quiz>
+                    
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Quiz </button>
+                    
+                    </div>
+                    <div id="newQuiz" v-if="showNewEntry">
+                        <label>Name <input v-model="newEntry.name" width=25% /> </label>
+                        <label>URL <input v-model="newEntry.url"></input> </label>
+                        <label>Total Records <input v-model="newEntry.total_records"></input> </label>
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // Pursuits
+            Vue.component('pursuit-item', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div v-if="!deleted" class="pursuit-item">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <span class="pursuit-info">
+                        <span class="pursuit-icon"> [{ entry.icon }] </span>
+                        <span class="pursuit-name">[{ entry.name }] </span>
+                    </span>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label> Icon:  <input v-model="entry.icon" v-on:blur="updateEntry"/>  </label>
+                        <label>Name: <input v-model="entry.name" v-on:blur="updateEntry" /> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete pursuit </div>
+                        </div>
+                    </div>
+                </div>`,
+                methods: {
+                    updatePursuit: function() {
+                        fetch(`http://localhost:8000/api/pursuit/${this.pursuit.id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Accept': 'application/json, text/plain, */*',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.pursuit),
+                        })
+                        .then(
+                            response => console.log(response),
+                            () => console.log('OOPS')
+                        );
+                    },
+                    deletePursuit: function() {
+                        this.deleted = true;
+                        fetch(`http://localhost:8000/api/pursuit/${this.pursuit.id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Accept': 'application/json, text/plain, */*',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.pursuit),
+                        })
+                        .then(function(response){
+                            },
+                            () => console.log('OOPS')
+                        );
+                    },
+                }
+            });
+            pursuitComponent = Vue.component('pursuit-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "pursuits", noMixinMounted: true, } },
+                mounted: function() {
+                    myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
+                },
+                template:
+                `
+                <div>
+                    <h1>Pursuits</h1>
+
+                    <div id="pursuit-list" class="object-list">
+                        <pursuit-item v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </pursuit-item>
+                    </div>
+
+                    <div id="newPursuit" v-if="showNewEntry">
+                        <label>Icon: <input v-model="newEntry.icon" /> </label>
+                        <label>Name: <input v-model="newEntry.name" /> </label>
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Pursuit </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // CardioExercises
+            Vue.component('cardioexercise', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div v-if="!deleted" class="cardioType-item">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <span class="cardioType-info">
+                        <span class="cardioType-name">[{ entry.name }] </span>
+                    </span>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Name: <input v-model="entry.name" v-on:blur="updateEntry" /> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete cardio exercise </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            cardioexerciseComponent = Vue.component('cardioexercise-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "cardioTypes", noMixinMounted: true, } },
+                mounted: function() {
+                    myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
+                },
+                template:
+                `
+                <div>
+                    <h1>Cardio Exercises</h1>
+
+                    <div id="cardioType-list" class="object-list">
+                        <cardioexercise v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </cardioexercise>
+                    </div>
+
+                    <div id="newCardioType" v-if="showNewEntry">
+                        <label>Name: <input v-model="newEntry.name" /> </label>
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Cardio Exercise </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // WeightExercises
+            Vue.component('weightexercise', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div v-if="!deleted" class="weightType-item">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <span class="weightType-info">
+                        <span class="weightType-name">[{ entry.name }] </span>
+                    </span>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Name: <input v-model="entry.name" v-on:blur="updateEntry" /> </label>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete weight exercise </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            weightexerciseComponent = Vue.component('weightexercise-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "weightTypes", noMixinMounted: true, } },
+                mounted: function() {
+                    myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
+                },
+                template:
+                `
+                <div>
+                    <h1>Weight Exercises</h1>
+
+                    <div id="weightType-list" class="object-list">
+                        <weightexercise v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint">
+                        </weightexercise>
+                    </div>
+
+                    <div id="newWeightType" v-if="showNewEntry">
+                        <label>Name: <input v-model="newEntry.name" /> </label>
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+
+                    <div>
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Weight Exercise </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // FoodItems
+            Vue.component('fooditem', {
+                mixins: [entryHandlingItemMixin],
+                template: 
+                `<div class="fooditem" v-if="!deleted">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions">
+                        <span class=""">
+                            <span v-if="showOptions">▴</span>
+                            <span v-else>✎</span>
+                        </span>
+                        
+                        <span class="fooditem-info">
+                            <span class="fooditem-header"> 
+                                <span class="fooditem-name"> [{ entry.name }] </span> 
+                            </span> 
+                        </span>
+                    </span>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Name: <input v-model="entry.name" v-on:blur="updateEntry" /> </label>
+                        <label>Barcode: <input v-model="entry.barcode" v-on:blur="updateEntry" /> </label>
+                        <div class="nutrition-label">
+                            <h1> Nutrition Facts </h1>
+                            <div> <b> Serving size </b> 
+                                <!--<input v-model="entry.serving_size" v-on:blur="updateEntry" class="wider-input" />-->
+                                <input placeholder="0" v-model="entry.serving_size_qty" v-on:blur="updateEntry" class="input" />
+                                <input placeholder="grams" v-model="entry.serving_size_unit" v-on:blur="updateEntry" class="wider-input" />
+                            </div>
+                            <div class="divider-large"></div>
+                            <div> <b>Calories</b> <input v-model="entry.calories" v-on:blur="updateEntry" /> </div>
+                            <div class="divider-small"></div>
+                            <div style="text-align:right;font-size:0.8em;"> <b> % Daily Value* </b> </div>
+                            <div class="nutrition-line"> <b>Total Fat</b> <input v-model="entry.total_fat" v-on:blur="updateEntry" />g </div>
+                            <div class="nutrition-subline"> <i>Saturated</i> Fat <input v-model="entry.saturated_fat" v-on:blur="updateEntry" />g </div>
+                            <div class="nutrition-subline"> <i>Trans</i> Fat <input v-model="entry.trans_fat" v-on:blur="updateEntry" />g </div>
+                            <div class="nutrition-line"> <b>Cholesterol</b> <input v-model="entry.cholesterol" v-on:blur="updateEntry" />mg </div>
+                            <div class="nutrition-line"> <b>Sodium</b> <input v-model="entry.sodium" v-on:blur="updateEntry" />mg </div>
+                            <div class="nutrition-line"> <b>Total Carbohydrate</b> <input v-model="entry.total_carbs" v-on:blur="updateEntry" />g </div>
+                            <div class="nutrition-subline"> Dietary Fiber <input v-model="entry.dietary_fiber" v-on:blur="updateEntry" />g </div>
+                            <div class="nutrition-subline"> Total Sugars <input v-model="entry.total_sugars" v-on:blur="updateEntry" />g </div>
+                            <div class="nutrition-subsubline"> Includes <input v-model="entry.added_sugars" v-on:blur="updateEntry" />g Added Sugars </div>
+                            <div class="nutrition-line"> <b>Protein</b> <input v-model="entry.protein" v-on:blur="updateEntry" />g </div>
+                            <div class="divider-large"></div>
+                            <div class="nutrition-line"> Vitamin D <input v-model="entry.vitamin_d" v-on:blur="updateEntry" />mcg </div>
+                            <div class="nutrition-line"> Calcium <input v-model="entry.calcium" v-on:blur="updateEntry" />mg </div>
+                            <div class="nutrition-line"> Iron <input v-model="entry.iron" v-on:blur="updateEntry" />mg </div>
+                            <div class="nutrition-line"> Potassium <input v-model="entry.potassium" v-on:blur="updateEntry" />mg </div>
+                            <div class="divider-small"></div>
+                            <div class="nutrition-notes">* The % Daily Value (DV) tells you how much a nutrient in a serving of food contributes to a daily diet. 2,000 calories a day is used for general nutrition advice.</div>
+                        </div>
+
+                        <div class="details-buttons"> 
+                            <div class="clickable details-button" v-on:click="deleteEntry"> <span class="fas fa-trash-alt"></span> Delete Food Item </div>
+                        </div>
+                    </div>
+                </div>`,
+            });
+            fooditemComponent = Vue.component('fooditem-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "foodItems", noMixinMounted: true, } },
+                mounted: function() {
+                    myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
+                },
+                template:
+                `
+                <div>
+                    <div id="object-list" class="object-list-flex">
+                        <fooditem v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint"></fooditem>
+                    
+                    </div>
+
+                    <button v-on:click="showNewEntry = !showNewEntry"> New FoodItem </button>
+                    <div id="newFoodItem" v-if="showNewEntry">
+                        <label>Name: <input v-model="newEntry.name" /> </label>
+                        <div class="nutrition-label">
+                            <h1> Nutrition Facts </h1>
+                            <div> <b> Serving size </b> 
+                                <!--<input v-model="newEntry.serving_size" v-on:blur="updateEntry" class="wider-input" />-->
+                                <input placeholder="0" v-model="newEntry.serving_size_qty" class="input" />
+                                <input placeholder="grams" v-model="newEntry.serving_size_unit" class="wider-input" />
+                            </div>
+                            <div class="divider-large"></div>
+                            <div> <b>Calories</b> <input v-model="newEntry.calories" /> </div>
+                            <div class="divider-small"></div>
+                            <div style="text-align:right;font-size:0.8em;"> <b> % Daily Value* </b> </div>
+                            <div class="nutrition-line"> <b>Total Fat</b> <input v-model="newEntry.total_fat" />g </div>
+                            <div class="nutrition-subline"> <i>Saturated</i> Fat <input v-model="newEntry.saturated_fat" />g </div>
+                            <div class="nutrition-subline"> <i>Trans</i> Fat <input v-model="newEntry.trans_fat" />g </div>
+                            <div class="nutrition-line"> <b>Cholesterol</b> <input v-model="newEntry.cholesterol" />mg </div>
+                            <div class="nutrition-line"> <b>Sodium</b> <input v-model="newEntry.sodium" />mg </div>
+                            <div class="nutrition-line"> <b>Total Carbohydrate</b> <input v-model="newEntry.total_carbs" />g </div>
+                            <div class="nutrition-subline"> Dietary Fiber <input v-model="newEntry.dietary_fiber" />g </div>
+                            <div class="nutrition-subline"> Total Sugars <input v-model="newEntry.total_sugars" />g </div>
+                            <div class="nutrition-subsubline"> Includes <input v-model="newEntry.added_sugars" />g Added Sugars </div>
+                            <div class="nutrition-line"> <b>Protein</b> <input v-model="newEntry.protein" />g </div>
+                            <div class="divider-large"></div>
+                            <div class="nutrition-line"> Vitamin D <input v-model="newEntry.vitamin_d" />mcg </div>
+                            <div class="nutrition-line"> Calcium <input v-model="newEntry.calcium" />mg </div>
+                            <div class="nutrition-line"> Iron <input v-model="newEntry.iron" />mg </div>
+                            <div class="nutrition-line"> Potassium <input v-model="newEntry.potassium" />mg </div>
+                            <div class="divider-small"></div>
+                            <div class="nutrition-notes">* The % Daily Value (DV) tells you how much a nutrient in a serving of food contributes to a daily diet. 2,000 calories a day is used for general nutrition advice.</div>
+                        </div>
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // Recipes
+            Vue.component('recipeingredient', {
+                delimiters: ["[{","}]"],
+                props: ['ingredient','fooditem','recipe'],
+                data: function() {
+                    return {
+                        deleted: false,
+                    }
+                },
+                template:
+                `
+                    <div v-if="!deleted && fooditem"> <b>[{ ingredient.item_qty * fooditem.serving_size_qty }] [{ fooditem.serving_size_unit }]</b> <span v-if="fooditem"> [{ fooditem.name }] </span> <span class="clickable" v-on:click="deleteIngredient"> <span class="fas fa-trash-alt"></span> </span> </div>
+                `,
+                methods: {
+                    deleteIngredient: function() {
+                        this.deleted = true;
+                        myAxios.delete('recipeingredients/' + this.ingredient.id);
+                    },
+                }
+            });
+            Vue.component('recipe', {
+                mixins: [entryHandlingItemMixin],
+                props: ['fooditems'],
+                data: function() {
+                    return {
+                        showOptions: false,
+                        showNewIngredient: false,
+                        newIngredientEntry: {},
+                        newRecipeIngredientEntry: {},
+                    }
+                },
+                template: 
+                `<div class="recipe-item">
+                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions">
+                        <span v-if="showOptions">▴</span>
+                        <span v-else>✎</span>
+                    </span>
+                    
+                    <span class="recipe-info">
+                        <span class="recipe-name"> [{ entry.name }] </span> 
+                    </span>
+
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        <label>Name: <input v-model="entry.name" v-on:blur="updateEntry" /> </label>
+                        <label>Instructions: <textarea v-model="entry.details" v-on:blur="updateEntry" /> </label>
+                        <h2> Ingredients </h2>
+                        <div v-for="ingredient in entry.ingredients">
+                            <recipeingredient :ingredient="ingredient" :fooditem="getFoodItemFromLoaded(ingredient.food_item)" :recipe="entry"> </recipeingredient> 
+                        </div>
+                        
+                        <button v-on:click="showNewIngredient = !showNewIngredient"> Add Ingredient </button>
+                        <div id="newIngredient" v-if="showNewIngredient">
+                            <label> Select Item: 
+                                <select v-model="newIngredientEntry">
+                                    <option v-for="fooditem in fooditems" :value="fooditem">
+                                        [{ fooditem.name }] ([{ fooditem.serving_size_qty }] [{ fooditem.serving_size_unit }])
+                                    </option>
+                                </select>
+                            </label>
+                            <label>Qty <input v-model="newRecipeIngredientEntry.item_qty" width=25% /> </label>
+                            <button v-on:click="addIngredient"> Save </button>
+                        </div>
+                    </div>
+                </div>`,
+                methods: {
+                    getFoodItemFromLoaded: function(id){
+                        return this.fooditems.find(p => p.id === id);
+                    },
+                    addIngredient: function() {
+                        this.newRecipeIngredientEntry.food_item = this.newIngredientEntry.id;
+                        this.newRecipeIngredientEntry.recipe = this.entry.id;
+                        this.newRecipeIngredientEntry.item_unit = this.newIngredientEntry.serving_size;
+                        this.newRecipeIngredient();
+                    },
+                    newRecipeIngredient: function() {
+                        myAxios.post('recipeingredients',this.newRecipeIngredientEntry)
+                            .then(response => {
+                                this.entry.ingredients.push(response.data);
+                                this.newRecipeIngredientEntry = {};
+                            });
+                    },
+                }
+            });
+            recipeComponent = Vue.component('recipe-page', {
+                mixins: [entryHandlingPageMixin],
+                data: function() { return { endpoint: "recipes", noMixinMounted: true, fooditems: [], } },
+                mounted: function() {
+                    myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
+                    myAxios.get("foodItems").then(response => this.fooditems = convertRatings(response.data));
+                },
+                methods: { getFoodItemFromLoaded: function(id){ return this.fooditems.find(p => p.id === id); }, },
+                template:
+                `
+                <div>
+                    <div id="object-list" class="object-list">
+                        <recipe v-for="item in sortedEntries"
+                        :entry="item"
+                        :key="item.id"
+                        :endpoint="endpoint"
+                        :fooditems="fooditems"></recipe>
+                    
+                        <button v-on:click="showNewEntry = !showNewEntry"> New Recipe </button>
+                    
+                    </div>
+
+                    <div id="newRecipe" v-if="showNewEntry">
+                        <label>Name: <input v-model="newEntry.name" /> </label>
+                        <label>Instructions: <textarea v-model="newEntry.details" /> </textarea></label>
+                        <button v-on:click="createNewEntry"> Save </button>
+                    </div>
+                </div>
+                `
+            });
+
+            // Universal 
+            const router = new VueRouter({
+                routes: [
+                    {path: '/', component: indexComponent },
+                    {path: '/overview', component: overviewComponent },
+                    {path: '/sleep', component: sleepComponent },
+                    {path: '/weight', component: weightComponent },
+                    {path: '/cardio', component: cardioComponent },
+                    {path: '/toilet', component: toiletComponent },
+                    {path: '/sex', component: sexComponent },
+                    {path: '/period', component: periodComponent },
+                    {path: '/learning', component: learningComponent },
+                    {path: '/money', component: moneyComponent },
+                    {path: '/study', component: studyComponent },
+                    {path: '/todo', component: todoComponent },
+                    {path: '/pursuitprogress', component: pursuitprogressComponent },
+                    {path: '/literature', component: literatureComponent },
+                    {path: '/film', component: filmComponent },
+                    {path: '/television', component: televisionComponent },
+                    {path: '/videogame', component: vgComponent },
+                    {path: '/boardgame', component: bgComponent },
+                    {path: '/music', component: musicComponent },
+                    {path: '/podcast', component: podcastComponent },
+                    {path: '/beer', component: beerComponent },
+                    {path: '/wine', component: wineComponent },
+                    {path: '/cheese', component: cheeseComponent },
+                    {path: '/cooking', component: cookingComponent },
+                    {path: '/grocerypurchase', component: groceriesComponent },
+                    {path: '/meal', component: mealsComponent },
+                    {path: '/travel', component: travelComponent },
+                    {path: '/modules', component: moduleComponent },
+                    {path: '/projects', component: projectComponent },
+                    {path: '/quizzes', component: quizComponent },
+                    {path: '/pursuits', component: pursuitComponent },
+                    {path: '/cardioexercises', component: cardioexerciseComponent },
+                    {path: '/weightexercises', component: weightexerciseComponent },
+                    {path: '/fooditems', component: fooditemComponent },
+                    {path: '/recipes', component: recipeComponent },
+                    {path: '/filmsToWatch', component: filmwishComponent },
+                    {path: '/boardgamesToPlay', component: boardgamewishComponent },
+                    {path: '/booksToRead', component: literaturewishComponent },
+                ]
+            });
+            var app = new Vue({
+                el: '#app',
+                router: router,
+                delimiters: ["[{","}]"],
+                computed: {
+                    showOptionsButton: function() { return ['/todo', '/learning'].indexOf(this.$route.path) > -1; }
+                }
+            }).$mount('#app');
+            
+        }
+    </script>
+    {% if user.is_authenticated %}
+
+        <div id="app" class="button-container">
+        
+            <div id="button-section">
+                <p>User: {{ user.get_username }}</p>
+                <router-link to="/">
+                    <a href="{% url 'index' %}" id="home-button">
+                        <span class="button-icon"><i class="fas fa-home"></i></span>
+                    </a>
+                </router-link>
+
+                <a href="{% url 'logout'%}?next={{request.path}}" id="home-button">
+                    <span class="button-icon"><i class="fas fa-sign-out-alt"></i></span>
+                </a>
+
+                <options-buttons :show-options-button="showOptionsButton"></options-buttons>
+            </div>
+
+            <router-view></router-view>      
+
+        </div>
+        
+    {% else %}
+        <h2><a href="{% url 'login'%}?next={{request.path}}">Login</a></h2>   
+    {% endif %} 
+
+</body>
+</html>
