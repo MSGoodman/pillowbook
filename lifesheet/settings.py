@@ -23,20 +23,20 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '^i)pja=c^a_qiczcmcno*#t*+nvhvn!q3lwi&+!@rd@cw6u&3g'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '45.56.102.188']
+ALLOWED_HOSTS = ['localhost', '142.93.14.88']
 
 
 CORS_ORIGIN_WHITELIST = (
     'localhost:3000',
     'localhost:8000',
-    '45.56.102.188:8000',
+    '142.93.14.88',
 )
 CSRF_TRUSTED_ORIGINS = (
     'localhost:3000',
     'localhost:8000',
-    '45.56.102.188:8000',
+    '142.93.14.88',
 )
 # Application definition
 
@@ -133,6 +133,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 LOGIN_REDIRECT_URL = '/app/'
 
@@ -140,3 +141,8 @@ LOGIN_REDIRECT_URL = '/app/'
 AUTHENTICATION_BACKENDS = (
         'django.contrib.auth.backends.ModelBackend',
     )
+
+STATICFILES_FINDERS = (
+	'django.contrib.staticfiles.finders.FileSystemFinder',
+	'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+	)
