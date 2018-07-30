@@ -1232,7 +1232,7 @@
                     </span>
                     
                     
-                    <span class="pursuit"> [{ getPursuitFromLoaded(todo.pursuit).icon }] </span>
+                    <span class="pursuit" v-if="getPursuitFromLoaded(todo.pursuit)"> [{ getPursuitFromLoaded(todo.pursuit).icon }] </span>
                     <span class="clickable heavy-icon" v-on:click="toggleStatus">
                         <span v-if="todo.status === 'CO'">☑</span>
                         <span v-else-if="todo.status === 'CA'">☒</span>
