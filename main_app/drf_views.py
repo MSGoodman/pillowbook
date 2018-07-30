@@ -303,7 +303,7 @@ class ToDoList(generics.ListCreateAPIView):
 		if (this_date_string):
 			this_date = datetime.strptime(this_date_string, '%Y-%m-%d')
 			print(this_date.date())
-			todo_q = Q(create_time__date__lte = this_date.date()) & (Q(finish_time__date__gte = this_date.date()) | Q(finish_time__isnull=True))
+			todo_q = Q(create_time__date__lte = this_date.date()) & (Q(finish_time__date__gte = this_date.date()) | Q(finish_time__isnull=True)) & Q(user=self.request.user)
 			todos = ToDo.objects.filter(create_time__date__lte = this_date.date(), finish_time__date__gte = this_date.date())
 			return ToDo.objects.filter(todo_q) # ToDo.objects.filter(date=this_date, user=self.request.user) # 
 		else:
