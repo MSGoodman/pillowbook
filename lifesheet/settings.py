@@ -43,16 +43,17 @@ CSRF_TRUSTED_ORIGINS = (
 INSTALLED_APPS = [
     'taggit',
     'taggit_serializer',
-    'main_app.apps.MainAppConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+	'custom_user',
     'rest_framework',
     'corsheaders',
     'django_extensions',
+    'main_app.apps.MainAppConfig',
 ]
 
 MIDDLEWARE = [
@@ -133,6 +134,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
+AUTH_USER_MODEL = 'main_app.User'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 

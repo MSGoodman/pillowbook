@@ -1,10 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from .forms import *
 from datetime import timezone, timedelta
 from django.db.models import Sum, Avg
 from django.contrib.auth import authenticate, login, logout
+from custom_user.forms import EmailUserCreationForm
 from django.http import JsonResponse, Http404
 
 from django.core import serializers
@@ -23,6 +24,75 @@ def app_login(request):
     else:
         return render(request, 'login_page.html', {})
     raise Http404('Something Is Not Set Right')
+
+def make_new_user_module_buttons(user_pk):
+    print(user_pk)
+    print("MAKING BUTTONS")
+    ModuleButton.objects.create(name='Overview',url_name='overview',icon_font_awesome='clipboard-list',user=user_pk)
+    print("MADE ONE")
+    ModuleButton.objects.create(name='Sleep',url_name='sleep',icon_font_awesome='bed',user=user_pk)
+    ModuleButton.objects.create(name='Weight',url_name='weight',icon_font_awesome='dumbbell',user=user_pk)
+    ModuleButton.objects.create(name='Cardio',url_name='cardio',icon_font_awesome='walking',user=user_pk)
+    ModuleButton.objects.create(name='Toilet',url_name='toilet',icon_font_awesome='poo',user=user_pk)
+    ModuleButton.objects.create(name='Sex',url_name='sex',icon_font_awesome='heart',user=user_pk)
+    ModuleButton.objects.create(name='Period',url_name='period',icon_font_awesome='tint',user=user_pk)
+    ModuleButton.objects.create(name='Learning',url_name='learning',icon_font_awesome='graduation-cap',user=user_pk)
+    ModuleButton.objects.create(name='Money',url_name='money',icon_font_awesome='money-check-alt',user=user_pk)
+    ModuleButton.objects.create(name='Study',url_name='study',icon_font_awesome='school',user=user_pk)
+    ModuleButton.objects.create(name='ToDo',url_name='todo',icon_font_awesome='tasks',user=user_pk)
+    ModuleButton.objects.create(name='Literature',url_name='literature',icon_font_awesome='book',user=user_pk)
+    ModuleButton.objects.create(name='Film',url_name='film',icon_font_awesome='video',user=user_pk)
+    ModuleButton.objects.create(name='Television',url_name='television',icon_font_awesome='tv',user=user_pk)
+    ModuleButton.objects.create(name='Board Games',url_name='boardgame',icon_font_awesome='dice',user=user_pk)
+    ModuleButton.objects.create(name='Video Games',url_name='videogame',icon_font_awesome='gamepad',user=user_pk)
+    ModuleButton.objects.create(name='Music',url_name='music',icon_font_awesome='mmusic',user=user_pk)
+    ModuleButton.objects.create(name='Podcast',url_name='podcast',icon_font_awesome='podcast',user=user_pk)
+    ModuleButton.objects.create(name='Beer',url_name='beer',icon_font_awesome='beer',user=user_pk)
+    ModuleButton.objects.create(name='Wine',url_name='wine',icon_font_awesome='wine-glass',user=user_pk)
+    ModuleButton.objects.create(name='Cheese',url_name='cheese',icon_font_awesome='hockey-puck',user=user_pk)
+    ModuleButton.objects.create(name='Pursuit Progress',url_name='pursuitprogress',icon_font_awesome='angle-double-right',user=user_pk)
+    ModuleButton.objects.create(name='Cooking',url_name='cooking',icon_font_awesome='concierge-bell',user=user_pk)
+    ModuleButton.objects.create(name='Groceries',url_name='grocerypurchase',icon_font_awesome='cart-plus',user=user_pk)
+    ModuleButton.objects.create(name='Meals',url_name='meal',icon_font_awesome='utensils',user=user_pk)
+    ModuleButton.objects.create(name='Travel',url_name='travel',icon_font_awesome='globe-americas',user=user_pk)
+
+def app_signup(request):
+    if request.POST:
+        email = request.POST['email']
+        pass1 = request.POST['password1']
+        pass2 = request.POST['password2']
+        if pass1 == pass2:
+            # Make User
+            new_user = User.objects.create_user(email, pass1)
+            user = authenticate(email=email, password=pass1)
+            # Make Module Buttons
+            make_new_user_module_buttons(new_user.pk)
+        if user is None:
+            return render(request, 'signup.html', {'error': 'User could not be created' })
+        else:
+            login(request, user)
+            return HttpResponseRedirect('/app/')
+    else:
+        return render(request, 'signup.html', {})
+    raise Http404('Something Is Not Set Right')
+
+
+    return render(request, 'signup.html', {'form':EmailUserCreationForm()})
+    if request.method == 'POST':
+        form = EmailUserCreationForm(request.POST)
+        print(form, form.is_valid())
+        if form.is_valid():
+            return render(request, 'indexRouter.html', {})
+            form.save()
+            email = form.cleaned_data.get('email')
+            raw_password = form.cleaned_data.get('password1')
+            print(email, raw_password)
+            user = authenticate(email=email, password=raw_password)
+            login(request, user)
+            return redirect('app')
+    else:
+        form = EmailUserCreationForm()
+    return render(request, 'signup.html', {'form': form})
 
 def module(request):
     return render(request, 'modules.html', {})

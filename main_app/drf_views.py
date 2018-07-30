@@ -17,7 +17,10 @@ class ModuleButtonList(generics.ListCreateAPIView):
 	permission_classes = (permissions.IsAuthenticated, )
 	serializer_class = ModuleButtonSerializer
 	
-	def get_queryset(self): 
+	def get_queryset(self):
+		print("TEST")
+		print(self.request)
+		print(self.request.user)
 		return ModuleButton.objects.filter(user=self.request.user)
 
 class ModuleButtonDetails(generics.RetrieveUpdateDestroyAPIView):

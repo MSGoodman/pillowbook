@@ -8,11 +8,16 @@ from django.conf import settings
 
 from taggit.managers import TaggableManager
 
+from custom_user.models import AbstractEmailUser
+
 class BaseModel(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     class Meta:
         abstract = True
+
+class User(AbstractEmailUser):
+    name = models.TextField(null = True, blank = True)
 
 # SUMMARY SECTION
 class Overview(BaseModel):
@@ -291,8 +296,8 @@ class ModuleButton(BaseModel):
 
     name = models.TextField()
     url_name = models.TextField()
-    background_color = models.TextField(blank=True, null=True)
-    icon_source = models.CharField(max_length=2, choices=ICON_SOURCE, default=UNICODE)
+    background_color = models.TextField(default='#8bacbd')
+    icon_source = models.CharField(max_length=2, choices=ICON_SOURCE, default=FONTAWESOME)
     icon_unicode = models.CharField(max_length=2, blank=True, null=True)
     icon_font_awesome = models.TextField(blank=True, null=True)
     display = models.BooleanField(default=True)

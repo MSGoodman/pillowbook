@@ -4,7 +4,10 @@ from . import views
 
 urlpatterns = [
     url('^$', views.index, name='index'),
+
     url(r'^login$', views.app_login, name='login'),
+    url(r'^signup$', views.app_signup, name='signup'),
+
     url(r'^modules$', views.module, name='modules'),
     url(r'^overview/$', views.overview, name='overview'),
 	url(r'^overview/(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<date>[0-9]+)$', views.overview, name='overview'),

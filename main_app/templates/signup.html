@@ -1,0 +1,15 @@
+<div>
+    {{ error }}
+</div>
+<form method="post" action="signup">{% csrf_token %}
+    <label for="email">
+        <input type="text" id="email" name="email" placeholder="Email">
+    </label>
+    <label for="password">
+        <input type="password" id="password1" name="password1" placeholder="Password">
+    </label>
+    <label for="password">
+        <input type="password" id="password2" name="password2" placeholder="Password">
+    </label>
+    <input type="submit" value="Sign Up" />
+</form>
