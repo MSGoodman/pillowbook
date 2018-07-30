@@ -2,7 +2,6 @@ from django.conf.urls import url, include
 from .drf_views import *
 
 urlpatterns = [
-	url(r'^v2/$', include('main_app.drf_public_urls')),
 	url(r'^today$', TodayDataFilled.as_view()),
 
 	url(r'^modules$', ModuleButtonList.as_view()),
