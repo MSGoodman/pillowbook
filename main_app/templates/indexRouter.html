@@ -1241,7 +1241,7 @@
                     
                     <span class="blink negamoney" v-if="todo.start_time"> <span class="fas fa-circle"></span> </span>
                     <span class="todo-name"> [{ todo.name }] </span>
-                    <span class="todo-project" v-if="todo.project"> [{ projects[todo.project].name }] </span> 
+                    <span class="todo-project" v-if="todo.project"> [{ getProjectFromLoaded(todo.project).name }] </span> 
 
                     <span class="waiting-on" v-if="todo.due_date" v-bind:class="[{negamoney: todoPastDue}]">
                         (Due: [{ todo.due_date }])
@@ -1266,7 +1266,7 @@
                         <label> Project: 
                             <select v-model="todo.project" v-on:change="updateToDo">
                                 <option v-for="project in projects" :value="project.id" v-if="!project.complete">
-                                    [{ project.name }] <!-- [{ categpursuitory.name }] -->
+                                    [{ project.name }] 
                                 </option>
                             </select>
                         </label>
@@ -1347,9 +1347,8 @@
                         this.deleted = true;
                         myAxios.delete("todo/" + this.todo.id);
                     },
-                    getPursuitFromLoaded: function(id){
-                        return this.pursuits.find(p => p.id === id);
-                    },
+                    getPursuitFromLoaded: function(id){ return this.pursuits.find(p => p.id === id); },
+                    getProjectFromLoaded: function(id){ return this.projects.find(p => p.id === id); },
                     textAreaTab: function(event){
                         if (this.tabindent){
                             event.preventDefault();
