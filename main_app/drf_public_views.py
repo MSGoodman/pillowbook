@@ -13,8 +13,17 @@ from .models import *
 
 from .serializers import *
 
-class ToDoList(generics.ListCreateAPIView):
-	permission_classes = (permissions.AllowAny, )
+# CUSTOM PERMISSIONS
+class SecretValidatedPermission(permissions.BasePermission):
+
+	def has_permission(self, request, view):
+		secret = request.META.get('HTTP_X_PBSECRET') 
+		print(secret)
+		return secret
+
+# VIEWS
+class TaskList(generics.ListCreateAPIView):
+	permission_classes = (permissions.AllowAny, SecretValidatedPermission)
 	serializer_class = ToDoSerializer
 
 	def get_queryset(self): 
@@ -26,7 +35,7 @@ class ToDoList(generics.ListCreateAPIView):
 			todos = ToDo.objects.filter(create_time__date__lte = this_date.date(), finish_time__date__gte = this_date.date())
 			return ToDo.objects.filter(todo_q) # ToDo.objects.filter(date=this_date, user=self.request.user) # 
 		else:
-			return ToDo.objects.all()
+			return ToDo.objects.filter(pk=100)
 
 	def perform_create(self, serializer):
 		serializer.save(user = self.request.user)
