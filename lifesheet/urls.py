@@ -19,7 +19,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^$/', include('main_app.urls')),
+    url(r'^$', include('main_app.urls')),
     #url('^accounts/', include('django.contrib.auth.urls')),
     url(r'^api/', include('main_app.drf_urls')),
 ]
