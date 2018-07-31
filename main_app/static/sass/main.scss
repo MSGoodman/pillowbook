@@ -1,29 +1,5 @@
-/* Variables */
-$color-bg-grey: #d8d8d6;
-$color-bg-darker-grey: #c6c6c4;
-$color-bg-darkest-grey: #b2b2b2;
-$color-not-black: #231f20;
-
-$color-pretty-blue: #8bacbd;
-$color-pretty-grey: #353535;
-$color-pretty-beige: #ccbfb3;
-$color-pretty-blue2: #94BAC3;
-$color-pretty-orange: #B65C2F;
-$color-pretty-beige2: #CAC2C0;
-$color-pretty-pink: #C06c84;
-$color-pretty-red: #874742;
-$color-pretty-mauve: #b2a0af;
-$color-pretty-green: #546d5a;
-$color-pretty-purple: #7f7499;
-$color-pretty-blue: #C1A49E;
-$color-pretty-blue: #CAC2C0;
-$color-pretty-blue: #b2a9a0;
-$color-pretty-blue: #d6d28b;
-
-$color-table-border-dark-blue: #8892a0;
-$color-table-border-light-blue: #b9c1ce;
-$color-table-header-blue: #b5c0d1;
-$color-table-blue: #d3dbe8;
+@import 'variables';
+@import 'signup';
 
 /* Universal Styles */      
 html, body, .app { height:100%; }
@@ -42,6 +18,12 @@ a {
 .text-75 {
     font-size: 0.75em;
 }
+
+/* Signup & Login */
+.logo-img{
+    height: 2em;
+}
+
 /* Index Styles */
 .button {
     width: 85px;

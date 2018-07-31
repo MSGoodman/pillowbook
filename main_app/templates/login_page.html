@@ -1,12 +1,51 @@
-<div>
-    {{ error }}
-</div>
-<form method="post" action="login">{% csrf_token %}
-    <label for="email">
-        <input type="text" id="email" name="email" placeholder="Email">
-    </label>
-    <label for="password">
-        <input type="password" id="password" name="password" placeholder="Password">
-    </label>
-    <input type="submit" value="login/" />
-</form>
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    {% load static %}
+    <meta charset="UTF-8">
+
+    <!-- Icon -->
+    <link rel="icon"  type="image/png"  href="{% static 'lifesheet.ico' %}">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Libre+Franklin:400,900" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Arimo" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <!-- My CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'stylesheets/main.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>PillowBook | Login</title>
+</head>
+<body>
+    <div class="container-fluid">
+        
+            <div class="row">
+
+                <div>
+                    {{ error }}
+                </div>
+
+                <h1><img class="logo-img" src="{% static 'placeholder-icon.png' %}" /> PillowBook </h1>
+                <div class="form-card">
+                    <div class="card-header">Sign In</div>
+                    <form id="login" method="post" action="login">{% csrf_token %}
+                        <label for="email"> Email </label>
+                        <input type="text" id="email" name="email" placeholder="Email">
+                        <label for="password"> Password </label>
+                        <input type="password" id="password" name="password" placeholder="Password">
+            
+                        <button type="submit" form="login" value="Submit" class="btn btn-primary">Sign In</button> 
+                    </form>
+                </div>
+
+            </div>
+    </div>
+
+</body>

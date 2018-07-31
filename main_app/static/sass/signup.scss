@@ -1,0 +1,40 @@
+@import 'variables';
+
+/* Signup & Login */
+.logo-img{
+    height: 2em;
+}
+
+.form-card {
+    width: 75%;
+    margin: 0 auto;
+    border: 1px solid $color-bg-darkest-grey;
+    border-radius: 10px;
+    padding-bottom: 10px;
+
+    .card-header {
+        background: $color-bg-darker-grey;
+        font-size: 1.5em;
+        font-weight: bold;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+        margin-bottom: 10px;
+    }
+
+    input {
+        width: 95%;
+        line-height: 1.5;
+        margin-bottom: 10px;
+    }
+
+    label {
+        font-weight: bold;
+        text-align: left;
+        margin: 0;
+    }
+
+    label, input {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+}

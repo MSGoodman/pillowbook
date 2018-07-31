@@ -1,15 +1,53 @@
-<div>
-    {{ error }}
-</div>
-<form method="post" action="signup">{% csrf_token %}
-    <label for="email">
-        <input type="text" id="email" name="email" placeholder="Email">
-    </label>
-    <label for="password">
-        <input type="password" id="password1" name="password1" placeholder="Password">
-    </label>
-    <label for="password">
-        <input type="password" id="password2" name="password2" placeholder="Password">
-    </label>
-    <input type="submit" value="Sign Up" />
-</form>
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    {% load static %}
+    <meta charset="UTF-8">
+
+    <!-- Icon -->
+    <link rel="icon"  type="image/png"  href="{% static 'lifesheet.ico' %}">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Libre+Franklin:400,900" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Arimo" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <!-- My CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'stylesheets/main.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>PillowBook | Sign Up</title>
+</head>
+<body>
+    <div class="container-fluid">
+
+            <div class="row">
+
+                <div>
+                    {{ error }}
+                </div>
+            
+                <h1><img class="logo-img" src="{% static 'placeholder-icon.png' %}" /> PillowBook </h1>
+                <div class="form-card">
+                    <div class="card-header">Sign Up</div>
+                    <form id="signup" method="post" action="signup">{% csrf_token %}
+                        <label for="email"> Email </label>
+                        <input type="text" id="email" name="email" placeholder="Email">
+                        <label for="password"> Password </label>
+                        <input type="password" id="password1" name="password1" placeholder="Password">
+                        <label for="password"> Re-Enter Password </label>
+                        <input type="password" id="password2" name="password2" placeholder="Password">
+            
+                        <button type="submit" form="signup" value="Submit" class="btn btn-primary">Submit</button> 
+                    </form>
+                </div>
+
+            </div>
+    </div>
+
+</body>
