@@ -10,7 +10,7 @@
     margin: 0 auto;
     border: 1px solid $color-bg-darkest-grey;
     border-radius: 10px;
-    padding-bottom: 10px;
+    padding-bottom: 5px;
 
     .card-header {
         background: $color-bg-darker-grey;
@@ -36,5 +36,11 @@
     label, input {
         padding-left: 10px;
         padding-right: 10px;
+    }
+
+    p {
+        font-size: 0.8em;
+        margin-top: 5px;
+        margin-bottom: 0;
     }
 }

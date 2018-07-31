@@ -12,7 +12,7 @@
   margin: 0 auto;
   border: 1px solid #b2b2b2;
   border-radius: 10px;
-  padding-bottom: 10px;
+  padding-bottom: 5px;
 }
 /* line 15, ../sass/signup.scss */
 .form-card .card-header {
@@ -39,6 +39,12 @@
 .form-card label, .form-card input {
   padding-left: 10px;
   padding-right: 10px;
+}
+/* line 41, ../sass/signup.scss */
+.form-card p {
+  font-size: 0.8em;
+  margin-top: 5px;
+  margin-bottom: 0;
 }
 
 /* Universal Styles */
