@@ -1,7 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from datetime import datetime, date
-from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
@@ -10,14 +9,16 @@ from taggit.managers import TaggableManager
 
 from custom_user.models import AbstractEmailUser
 
+class User(AbstractEmailUser):
+    name = models.TextField(null = True, blank = True)
+    github_webhook_secret = models.TextField(blank=True,null=True)
+    github_username = models.TextField(blank=True,null=True)
+
 class BaseModel(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
         abstract = True
-
-class User(AbstractEmailUser):
-    name = models.TextField(null = True, blank = True)
 
 # SUMMARY SECTION
 class Overview(BaseModel):
