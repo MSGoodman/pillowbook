@@ -34,6 +34,7 @@ CORS_ORIGIN_WHITELIST = (
     '142.93.14.88',
     'www.pillowbook.app',
     'www.pillow-book.com',
+    'https://www.pillow-book.com',
 )
 CSRF_TRUSTED_ORIGINS = (
     'localhost:3000',
@@ -41,6 +42,7 @@ CSRF_TRUSTED_ORIGINS = (
     '142.93.14.88',
     'www.pillowbook.app',
     'www.pillow-book.com',
+    'https://www.pillow-book.com',
 )
 # Application definition
 
