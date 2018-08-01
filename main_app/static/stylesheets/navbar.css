@@ -1,12 +1,10 @@
 /* Variables */
-/* Signup & Login */
-/* line 4, ../sass/navbar.scss */
-.navbar-brand > img {
-  height: 1.5em;
-  display: inline;
-}
-
-/* line 9, ../sass/navbar.scss */
+/* line 3, ../sass/navbar.scss */
 .dropdown-label {
   cursor: pointer;
+}
+
+/* line 7, ../sass/navbar.scss */
+.navbar {
+  margin-bottom: 10px;
 }
