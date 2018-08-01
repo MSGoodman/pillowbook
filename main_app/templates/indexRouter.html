@@ -3649,51 +3649,62 @@
 
         <div id="app">
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-                <a class="navbar-brand" href="{% url 'index' %}" ><img class="logo-img" src="{% static 'placeholder-icon.png' %}" /> PillowBook </a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="navbar-collapse collapse dual-collapse2 order-md-0 order-1 w-100">
                     <ul class="navbar-nav mr-auto">
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'logout'%}?next={{request.path}}"><i class="fas fa-sign-out-alt"></i> Logout </a>
-                    </li>
-
-                    <li class="nav-item dropdown" v-if="showOptionsButton">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownOptions" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-wrench"></i> Options
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" href="#" onclick="event.stopPropagation();"  v-if="showDisableDrag">
-                                <label> Disable Dragging <input type="checkbox" v-model="options.state.disableDrag"> </label>
+                        <li id="navbar-options" class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownOptions" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-wrench"></i> Options
                             </a>
-                            <a class="dropdown-item" href="#" onclick="event.stopPropagation();">
-                                <label> Tab Indents Text <input type="checkbox" v-model="options.state.tabIndent"> </label>
-                            </a>
-                        </div>
-                    </li>
 
-                    <li class="nav-item dropdown" v-if="showSideButtons.length">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownSideButtons" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Related Objects
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <router-link to="/modules"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('modules')"> <span> Modules &#128306; </span> </a> </router-link>
-                                <router-link to="/projects"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('projects')">  <span> Projects &#128193; </span> </a>  </router-link>
-                                <router-link to="/quizzes"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('quizzes')"><span> Quizzes &#127822; </span> </a> </router-link>
-                                <router-link to="/pursuits"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('pursuits')"><span> Pursuits &#128209; </span> </a> </router-link>
-                                <router-link to="/cardio"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('cardio')"><span> Cardio 🏃 </span> </a> </router-link>
-                                <router-link to="/weight"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('weight')"><span> Weight 💪 </span> </a> </router-link>
-                                <router-link to="/foods"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('foods')"><span> Foods 🍔 </span> </a> </router-link>
-                                <router-link to="/recipe"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('recipe')"><span> Recipe 🍲 </span> </a> </router-link>
-                                <router-link to="/filmsToWatch"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('filmsToWatch')"><span> To Watch 🎥 </span> </a> </router-link>
-                                <router-link to="/boardgamesToPlay"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('boardgamesToPlay')"><span> To Play 🎲 </span> </a> </router-link>
-                                <router-link to="/booksToRead"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('booksToRead')"><span> To Read 📖 </span> </a> </router-link>
-                        </div>
-                    </li>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                
+                                <a class="dropdown-item" href="{% url 'logout'%}?next={{request.path}}"><i class="fas fa-sign-out-alt"></i> Logout </a>
+                                <a class="dropdown-item" href="#" onclick="event.stopPropagation();" >
+                                    <label> Disable Dragging <input type="checkbox" v-model="options.state.disableDrag"> </label>
+                                </a>
+                                <a class="dropdown-item" href="#" onclick="event.stopPropagation();">
+                                    <label> Tab Indents Text <input type="checkbox" v-model="options.state.tabIndent"> </label>
+                                </a>
+
+                            </div>
+                        </li>
+
+                    </ul>
                 </div>
+                
+                <div class="order-0 mx-auto">
+                    <a class="navbar-brand mx-auto" href="{% url 'index' %}" ><img class="logo-img" src="{% static 'placeholder-icon.png' %}" /> PillowBook </a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".dual-collapse2">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                </div>
+
+                <div class="navbar-collapse collapse dual-collapse2 order-2 w-100">
+                    <ul class="navbar-nav ml-auto">
+                        
+
+                        <li id="navbar-related" class="nav-item dropdown" v-if="showSideButtons.length">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownSideButtons" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-code-branch"></i> Related
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                    <router-link to="/modules"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('modules')"> <span> Modules &#128306; </span> </a> </router-link>
+                                    <router-link to="/projects"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('projects')">  <span> Projects &#128193; </span> </a>  </router-link>
+                                    <router-link to="/quizzes"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('quizzes')"><span> Quizzes &#127822; </span> </a> </router-link>
+                                    <router-link to="/pursuits"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('pursuits')"><span> Pursuits &#128209; </span> </a> </router-link>
+                                    <router-link to="/cardio"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('cardio')"><span> Cardio 🏃 </span> </a> </router-link>
+                                    <router-link to="/weight"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('weight')"><span> Weight 💪 </span> </a> </router-link>
+                                    <router-link to="/foods"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('foods')"><span> Foods 🍔 </span> </a> </router-link>
+                                    <router-link to="/recipe"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('recipe')"><span> Recipe 🍲 </span> </a> </router-link>
+                                    <router-link to="/filmsToWatch"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('filmsToWatch')"><span> To Watch 🎥 </span> </a> </router-link>
+                                    <router-link to="/boardgamesToPlay"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('boardgamesToPlay')"><span> To Play 🎲 </span> </a> </router-link>
+                                    <router-link to="/booksToRead"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('booksToRead')"><span> To Read 📖 </span> </a> </router-link>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
             </nav>
 
             {% if user.is_authenticated %}
