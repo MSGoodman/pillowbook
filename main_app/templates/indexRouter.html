@@ -148,96 +148,6 @@
                 },
                 computed: { sortedEntries: function(){ return this.entries } },
             }
-            var apiCalloutMixin = {
-                methods: {
-                    getVideoGameByID: function(id) {
-                        fetch(`http://localhost:8000/api/videogame/{id}`)
-                        .then(response => response.json())
-                        .then(
-                            (json) => { this.videogame = json },
-                            (error) => { console.log(error) }
-                        );
-                    },
-                    getVideoGamesByDate: function(date, valueToSet) {
-                        fetch('http://localhost:8000/api/videogame/' + date)
-                        .then(response => response.json())
-                        .then(
-                            (json) => { 
-                                this.videogames = json;
-                            },
-                            (error) => { console.log(error) }
-                        );
-                    },
-                    getAllVideoGames: function() {
-                        fetch('http://localhost:8000/api/videogame')
-                        .then(response => response.json())
-                        .then(
-                            (json) => { 
-                                this.videogames = json; 
-                            },
-                            (error) => { console.log(error) }
-                        );
-                    },
-                    getBoardGameByID: function(id) {
-                        fetch(`http://localhost:8000/api/boardgame/{id}`)
-                        .then(response => response.json())
-                        .then(
-                            (json) => { this.boardgame = json },
-                            (error) => { console.log(error) }
-                        );
-                    },
-                    getBoardGamesByDate: function(date) {
-                        fetch('http://localhost:8000/api/boardgame/' + date)
-                        .then(response => response.json())
-                        .then(
-                            (json) => { 
-                                this.boardgames = json; 
-                                this.boardgames
-                            },
-                            (error) => { console.log(error) }
-                        );
-                    },
-                    getAllBoardGames: function() {
-                        fetch('http://localhost:8000/api/boardgame')
-                        .then(response => response.json())
-                        .then(
-                            (json) => { 
-                                this.boardgames = json; 
-                            },
-                            (error) => { console.log(error) }
-                        );
-                    },
-                    getOverviewByID: function(id) {
-                        fetch(`http://localhost:8000/api/overview/{id}`, {credentials: "same-origin"})
-                        .then(response => response.json())
-                        .then(
-                            (json) => { this.overview = json },
-                            (error) => { console.log(error) }
-                        );
-                    },
-                    getOverviewsByDate: function(date) {
-                        fetch('http://localhost:8000/api/overview/' + date, {credentials: "same-origin"})
-                        .then(response => response.json())
-                        .then(
-                            (json) => { 
-                                this.overviews = json; 
-                                this.overviews
-                            },
-                            (error) => { console.log(error) }
-                        );
-                    },
-                    getAllOverviews: function() {
-                        fetch('http://localhost:8000/api/overview')
-                        .then(response => response.json())
-                        .then(
-                            (json) => { 
-                                this.overviews = json; 
-                            },
-                            (error) => { console.log(error) }
-                        );
-                    },
-                }
-            }
             
             var optionsStore = {
                 state: {
@@ -252,7 +162,7 @@
                 props: ['modules','projects','quizzes','pursuits','cardio','weight','foods','recipes','film','lit','boardgames'],
                 template:
                 `
-                <section id="date-agnostic-element-container">
+                <section id="date-agnostic-element-container" v-if="false">
                     <router-link to="/modules" v-if="modules">
                         <a class="button" style="background-color:#C1A49E">
                             <span class="button-label">Modules</span>
@@ -414,7 +324,7 @@
                 },
                 template:
                 `
-                <div class="button-container">
+                <div id="index-component">
                     <div v-for="section in sections"> 
 
                         <h2>[{ section }]</h2>
@@ -3711,6 +3621,22 @@
                 data: { options: optionsStore, },
                 computed: {
                     showOptionsButton: function() { return ['/todo', '/learning'].indexOf(this.$route.path) > -1; },
+                    showSideButtons: function() { 
+                        sideButtons = [];
+                        if (this.$route.path === '/todo'){ sideButtons.push('pursuits'); sideButtons.push('projects'); }
+                        if (this.$route.path === '/'){ sideButtons.push('modules'); }
+                        if (this.$route.path === '/weight'){ sideButtons.push('weight'); }
+                        if (this.$route.path === '/cardio'){ sideButtons.push('cardio'); }
+                        if (this.$route.path === '/study'){ sideButtons.push('quizzes'); }
+                        if (this.$route.path === '/literature'){ sideButtons.push('booksToRead'); }
+                        if (this.$route.path === '/film'){ sideButtons.push('filmsToWatch'); }
+                        if (this.$route.path === '/boardgame'){ sideButtons.push('boardgamesToPlay'); }
+                        if (this.$route.path === '/pursuitprogress'){ sideButtons.push('pursuits'); }
+                        if (this.$route.path === '/cooking'){ sideButtons.push('fooditems'); sideButtons.push('recipes'); }
+                        if (this.$route.path === '/grocerypurchase'){ sideButtons.push('fooditems'); }
+                        if (this.$route.path === '/meal'){ sideButtons.push('fooditems'); sideButtons.push('recipes'); }
+                        return sideButtons; 
+                    },
                     showDisableDrag: function() { return this.$route.path === "/todo"; }
                 }
                     
@@ -3730,11 +3656,13 @@
                 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav mr-auto">
+
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'logout'%}?next={{request.path}}"><i class="fas fa-sign-out-alt"></i> Logout </a>
                     </li>
+
                     <li class="nav-item dropdown" v-if="showOptionsButton">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownOptions" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-wrench"></i> Options
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
@@ -3746,12 +3674,31 @@
                             </a>
                         </div>
                     </li>
+
+                    <li class="nav-item dropdown" v-if="showSideButtons.length">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownSideButtons" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Related Objects
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <router-link to="/modules"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('modules')"> <span> Modules &#128306; </span> </a> </router-link>
+                                <router-link to="/projects"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('projects')">  <span> Projects &#128193; </span> </a>  </router-link>
+                                <router-link to="/quizzes"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('quizzes')"><span> Quizzes &#127822; </span> </a> </router-link>
+                                <router-link to="/pursuits"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('pursuits')"><span> Pursuits &#128209; </span> </a> </router-link>
+                                <router-link to="/cardio"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('cardio')"><span> Cardio 🏃 </span> </a> </router-link>
+                                <router-link to="/weight"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('weight')"><span> Weight 💪 </span> </a> </router-link>
+                                <router-link to="/foods"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('foods')"><span> Foods 🍔 </span> </a> </router-link>
+                                <router-link to="/recipe"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('recipe')"><span> Recipe 🍲 </span> </a> </router-link>
+                                <router-link to="/filmsToWatch"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('filmsToWatch')"><span> To Watch 🎥 </span> </a> </router-link>
+                                <router-link to="/boardgamesToPlay"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('boardgamesToPlay')"><span> To Play 🎲 </span> </a> </router-link>
+                                <router-link to="/booksToRead"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('booksToRead')"><span> To Read 📖 </span> </a> </router-link>
+                        </div>
+                    </li>
                 </div>
             </nav>
 
             {% if user.is_authenticated %}
 
-            <div class="button-container">
+            <div class="container-fluid">
                 <router-view></router-view>      
             </div>
 
