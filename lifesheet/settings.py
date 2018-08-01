@@ -25,18 +25,22 @@ SECRET_KEY = '^i)pja=c^a_qiczcmcno*#t*+nvhvn!q3lwi&+!@rd@cw6u&3g'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '142.93.14.88']
+ALLOWED_HOSTS = ['localhost', '142.93.14.88', 'www.pillowbook.app', 'www.pillow-book.com']
 
 
 CORS_ORIGIN_WHITELIST = (
     'localhost:3000',
     'localhost:8000',
     '142.93.14.88',
+    'www.pillowbook.app',
+    'www.pillow-book.com',
 )
 CSRF_TRUSTED_ORIGINS = (
     'localhost:3000',
     'localhost:8000',
     '142.93.14.88',
+    'www.pillowbook.app',
+    'www.pillow-book.com',
 )
 # Application definition
 
