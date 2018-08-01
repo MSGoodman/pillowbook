@@ -3646,6 +3646,7 @@
     </script>
 
 
+        {% if user.is_authenticated %}
 
         <div id="app">
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -3707,15 +3708,13 @@
 
             </nav>
 
-            {% if user.is_authenticated %}
 
             <div class="container-fluid">
                 <router-view></router-view>      
             </div>
 
-            {% else %}
-            <login></login>
-            {% endif %} 
+        {% else %}
+        {% endif %} 
         </div>
         
 

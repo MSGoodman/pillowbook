@@ -89,7 +89,7 @@ def app_signup(request):
             print(email, raw_password)
             user = authenticate(email=email, password=raw_password)
             login(request, user)
-            return redirect('app')
+            return HttpResponseRedirect('/')
     else:
         form = EmailUserCreationForm()
     return render(request, 'signup.html', {'form': form})
@@ -156,6 +156,9 @@ def index(request):
         'last_seven_days':last_seven_days,
         'buttons': serializers.serialize("json", ModuleButton.objects.all()),
     }
+
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect('login')
 
     return render(request, 'indexRouter.html', context)
 
