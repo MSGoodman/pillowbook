@@ -33,10 +33,15 @@
     <script src="//cdn.jsdelivr.net/npm/sortablejs@1.7.0/Sortable.min.js"></script>
         <!-- CDNJS :: Vue.Draggable (https://cdnjs.com/) -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.16.0/vuedraggable.min.js"></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
     <!-- My CSS -->
     <link rel="stylesheet" type="text/css" href="{% static 'stylesheets/main.css' %}">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <title></title>
 </head>
@@ -3600,11 +3605,66 @@
                 </div>
                 `
             });
+            
+            // Sign In & Sign Up
+            loginComponent = Vue.component('login', {
+                template:
+                `
+                <div class="row">
+                <div class="col">
+
+                    <div>{{ error }}</div>
+
+                    <h1><img class="logo-img" src="{% static 'placeholder-icon.png' %}" /> PillowBook </h1>
+                    <div class="form-card">
+                        <div class="card-header">Sign In</div>
+                        <form id="login" method="post" action="login">{% csrf_token %}
+                            <label for="email"> Email </label>
+                            <input type="text" id="email" name="email" placeholder="Email">
+                            <label for="password"> Password </label>
+                            <input type="password" id="password" name="password" placeholder="Password">
+                
+                            <button type="submit" form="login" value="Submit" class="btn btn-primary">Sign In</button> 
+                        </form>
+
+                        <p>Don't have an account? <a href="signup">Sign up!</a></p>
+                    </div>
+                </div>
+                </div>
+                `
+            });
+
+            signupComponent = Vue.component('signup', {
+                template:
+                `
+                <div class="row">
+                <div class="col">
+                    <div> {{ error }}</div>
+                
+                    <h1><img class="logo-img" src="{% static 'placeholder-icon.png' %}" /> PillowBook </h1>
+                    <div class="form-card">
+                        <div class="card-header">Sign Up</div>
+                        <form id="signup" method="post" action="signup">{% csrf_token %}
+                            <label for="email"> Email </label>
+                            <input type="text" id="email" name="email" placeholder="Email">
+                            <label for="password"> Password </label>
+                            <input type="password" id="password1" name="password1" placeholder="Password">
+                            <label for="password"> Re-Enter Password </label>
+                            <input type="password" id="password2" name="password2" placeholder="Password">
+                
+                            <button type="submit" form="signup" value="Submit" class="btn btn-primary">Submit</button> 
+                        </form>
+                    </div>
+                </div>
+                </div>
+                `
+            });
 
             // Universal 
             const router = new VueRouter({
                 routes: [
                     {path: '/', component: indexComponent },
+                    {path: '/login', component: loginComponent },
                     {path: '/overview', component: overviewComponent },
                     {path: '/sleep', component: sleepComponent },
                     {path: '/weight', component: weightComponent },
@@ -3648,39 +3708,59 @@
                 el: '#app',
                 router: router,
                 delimiters: ["[{","}]"],
+                data: { options: optionsStore, },
                 computed: {
-                    showOptionsButton: function() { return ['/todo', '/learning'].indexOf(this.$route.path) > -1; }
+                    showOptionsButton: function() { return ['/todo', '/learning'].indexOf(this.$route.path) > -1; },
+                    showDisableDrag: function() { return this.$route.path === "/todo"; }
                 }
+                    
             }).$mount('#app');
             
         }
     </script>
-    {% if user.is_authenticated %}
 
-        <div id="app" class="button-container">
-        
-            <div id="button-section">
-                <p>User: {{ user.get_username }}</p>
-                <router-link to="/">
-                    <a href="{% url 'index' %}" id="home-button">
-                        <span class="button-icon"><i class="fas fa-home"></i></span>
-                    </a>
-                </router-link>
 
-                <a href="{% url 'logout'%}?next={{request.path}}" id="home-button">
-                    <span class="button-icon"><i class="fas fa-sign-out-alt"></i></span>
-                </a>
 
-                <options-buttons :show-options-button="showOptionsButton"></options-buttons>
+        <div id="app">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <a class="navbar-brand" href="{% url 'index' %}" ><img class="logo-img" src="{% static 'placeholder-icon.png' %}" /> PillowBook </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout'%}?next={{request.path}}"><i class="fas fa-sign-out-alt"></i> Logout </a>
+                    </li>
+                    <li class="nav-item dropdown" v-if="showOptionsButton">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-wrench"></i> Options
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="#" onclick="event.stopPropagation();"  v-if="showDisableDrag">
+                                <label> Disable Dragging <input type="checkbox" v-model="options.state.disableDrag"> </label>
+                            </a>
+                            <a class="dropdown-item" href="#" onclick="event.stopPropagation();">
+                                <label> Tab Indents Text <input type="checkbox" v-model="options.state.tabIndent"> </label>
+                            </a>
+                        </div>
+                    </li>
+                </div>
+            </nav>
+
+            {% if user.is_authenticated %}
+
+            <div class="button-container">
+                <router-view></router-view>      
             </div>
 
-            <router-view></router-view>      
-
+            {% else %}
+            <login></login>
+            <h2><a href="{% url 'login'%}?next={{request.path}}">Login</a></h2>   
+            {% endif %} 
         </div>
         
-    {% else %}
-        <h2><a href="{% url 'login'%}?next={{request.path}}">Login</a></h2>   
-    {% endif %} 
 
 </body>
 </html>
