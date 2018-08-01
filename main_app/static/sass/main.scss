@@ -162,6 +162,14 @@ a {
 
 /* Object Page Styles */
 
+.new-entry-form {
+    border: 1px solid $color-bg-darkest-grey;
+    background-color: $color-bg-lighter-grey;
+    margin: 5px auto;
+    width: 65%;
+    padding: 5px;
+}
+
 label {
     display: block;
     font-weight: bold;
