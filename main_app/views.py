@@ -20,7 +20,7 @@ def app_login(request):
             return render(request, 'login_page.html', {'error': 'Incorrect login details' })
         else:
             login(request, user)
-            return HttpResponseRedirect('/app/')
+            return HttpResponseRedirect('/')
     else:
         return render(request, 'login_page.html', {})
     raise Http404('Something Is Not Set Right')
@@ -71,7 +71,7 @@ def app_signup(request):
             return render(request, 'signup.html', {'error': 'User could not be created' })
         else:
             login(request, user)
-            return HttpResponseRedirect('/app/')
+            return HttpResponseRedirect('/')
     else:
         return render(request, 'signup.html', {})
     raise Http404('Something Is Not Set Right')

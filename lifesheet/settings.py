@@ -142,7 +142,7 @@ AUTH_USER_MODEL = 'main_app.User'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-LOGIN_REDIRECT_URL = '/app/'
+LOGIN_REDIRECT_URL = ''
 
 #Authentication backends
 AUTHENTICATION_BACKENDS = (
