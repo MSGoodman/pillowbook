@@ -2,11 +2,14 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from .forms import *
-from datetime import timezone, timedelta
+from datetime import timezone, timedelta, datetime
 from django.db.models import Sum, Avg
 from django.contrib.auth import authenticate, login, logout
 from custom_user.forms import EmailUserCreationForm
 from django.http import JsonResponse, Http404
+
+import hashlib
+from django.utils.crypto import get_random_string
 
 from django.core import serializers
 
@@ -68,24 +71,37 @@ def make_new_user_module_buttons(user_instance):
     Quiz.objects.create(name='Countries', url='http://mikesgoodman.com/WorldGeographyQuiz/', total_records=201, user=user_instance)
     Quiz.objects.create(name='U.S. States', url='http://mikesgoodman.com/UsGeographyQuiz/', total_records=201, user=user_instance)
 
+def generate_activation_key(username):
+    chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+    secret_key = get_random_string(20, chars)
+    return hashlib.sha256((secret_key + username).encode('utf-8')).hexdigest()
+
 def app_signup(request):
     if request.POST:
         email = request.POST['email']
         pass1 = request.POST['password1']
         pass2 = request.POST['password2']
+
         if pass1 == pass2:
             # Make User
-            new_user = User.objects.create_user(email, pass1)
-            user = authenticate(email=email, password=pass1)
+            activation_key = generate_activation_key(email)
+            key_expires = datetime.strftime(datetime.now() + timedelta(days=2), "%Y-%m-%d %H:%M:%S")
+
+            new_user = User.objects.create_user(email, pass1,activation_key=activation_key,is_active=False,key_expires=key_expires)
             # Make Module Buttons
             make_new_user_module_buttons(new_user)
-        if user is None:
+        else:
+            return render(request, 'signup.html', {'error': "Passwords didn't match"})
+
+        if new_user is None:
             return render(request, 'signup.html', {'error': 'User could not be created' })
         else:
-            login(request, user)
+            login(request, new_user)
             return HttpResponseRedirect('/')
+
     else:
         return render(request, 'signup.html', {})
+
     raise Http404('Something Is Not Set Right')
 
 

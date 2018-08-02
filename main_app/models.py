@@ -313,7 +313,7 @@ class ModuleButton(BaseModel):
 # GROCERIES
 
 class FoodItem(BaseModel):
-    name = models.TextField(unique=True)
+    name = models.TextField()
     serving_size_qty = models.DecimalField(blank = True, null = True,max_digits=5, decimal_places=2)
     serving_size_unit = models.TextField()
     barcode = models.TextField(blank = True, null = True)
