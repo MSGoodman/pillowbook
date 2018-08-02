@@ -629,9 +629,10 @@ h2 {
 /* line 436, ../sass/main.scss */
 .inline-label {
   display: inline;
+  margin: 0 10px;
 }
 
-/* line 440, ../sass/main.scss */
+/* line 441, ../sass/main.scss */
 .draggable {
   cursor: move;
   /* fallback: no `url()` support or images disabled */
@@ -645,7 +646,7 @@ h2 {
   /* W3C standards syntax, should come least */
 }
 
-/* line 447, ../sass/main.scss */
+/* line 448, ../sass/main.scss */
 .draggable:active {
   cursor: url(images/grabbing.cur);
   cursor: -webkit-grabbing;
@@ -653,13 +654,13 @@ h2 {
   cursor: grabbing;
 }
 
-/* line 454, ../sass/main.scss */
+/* line 455, ../sass/main.scss */
 .vue-star-rating {
   display: inline-block !important;
 }
 
 /* TODO STYLES */
-/* line 460, ../sass/main.scss */
+/* line 461, ../sass/main.scss */
 .blink {
   font-size: 0.8em;
   animation: blink_effect 2s linear infinite;
@@ -678,7 +679,7 @@ h2 {
   }
 }
 /* AUTOCOMPLETE */
-/* line 479, ../sass/main.scss */
+/* line 480, ../sass/main.scss */
 .autocomplete {
   position: relative;
   font-weight: normal;
@@ -686,7 +687,7 @@ h2 {
   width: 100%;
 }
 
-/* line 486, ../sass/main.scss */
+/* line 487, ../sass/main.scss */
 .autocomplete-results {
   background-color: white;
   padding: 0;
@@ -697,7 +698,7 @@ h2 {
   overflow: auto;
 }
 
-/* line 496, ../sass/main.scss */
+/* line 497, ../sass/main.scss */
 .autocomplete-result {
   list-style: none;
   text-align: left;
@@ -705,20 +706,20 @@ h2 {
   cursor: pointer;
 }
 
-/* line 504, ../sass/main.scss */
+/* line 505, ../sass/main.scss */
 .autocomplete-result.is-active,
 .autocomplete-result:hover {
   background-color: #4AAE9B;
   color: white;
 }
 
-/* line 510, ../sass/main.scss */
+/* line 511, ../sass/main.scss */
 .fooditem {
   width: 300px;
 }
 
 /* NUTRITION FACTS */
-/* line 515, ../sass/main.scss */
+/* line 516, ../sass/main.scss */
 .nutrition-label {
   background-color: white;
   font-family: 'Arimo',Arial, Helvetica, sans-serif;
@@ -727,67 +728,67 @@ h2 {
   display: inline-block;
   padding: 0 5px 5px 5px;
 }
-/* line 523, ../sass/main.scss */
+/* line 524, ../sass/main.scss */
 .nutrition-label .divider-large {
   background-color: black;
   height: 10px;
   margin: 3px 0 3px 0;
 }
-/* line 528, ../sass/main.scss */
+/* line 529, ../sass/main.scss */
 .nutrition-label .divider-small {
   background-color: black;
   height: 4px;
   margin: 3px 0 3px 0;
 }
-/* line 533, ../sass/main.scss */
+/* line 534, ../sass/main.scss */
 .nutrition-label h1 {
   margin: 0;
   padding: 0;
   font-family: 'Libre Franklin',Arial, Helvetica, sans-serif;
   font-weight: 900;
 }
-/* line 539, ../sass/main.scss */
+/* line 540, ../sass/main.scss */
 .nutrition-label input {
   width: 30px;
 }
-/* line 542, ../sass/main.scss */
+/* line 543, ../sass/main.scss */
 .nutrition-label .wider-input {
   width: 100px;
 }
-/* line 545, ../sass/main.scss */
+/* line 546, ../sass/main.scss */
 .nutrition-label .nutrition-line {
   border-top: 1px solid black;
 }
-/* line 548, ../sass/main.scss */
+/* line 549, ../sass/main.scss */
 .nutrition-label .nutrition-subline {
   font-size: 0.9em;
   border-top: 1px solid black;
   padding-left: 10px;
 }
-/* line 553, ../sass/main.scss */
+/* line 554, ../sass/main.scss */
 .nutrition-label .nutrition-subsubline {
   font-size: 0.9em;
   border-top: 1px solid black;
   padding-left: 20px;
 }
-/* line 558, ../sass/main.scss */
+/* line 559, ../sass/main.scss */
 .nutrition-label .nutrition-notes {
   font-size: 0.6em;
   overflow-wrap: normal;
   width: 240px;
 }
 
-/* line 565, ../sass/main.scss */
+/* line 566, ../sass/main.scss */
 #app {
   height: 100%;
 }
 
-/* line 568, ../sass/main.scss */
+/* line 569, ../sass/main.scss */
 #travel-section {
   height: 100%;
 }
 
-/* line 571, ../sass/main.scss */
+/* line 572, ../sass/main.scss */
 #map {
   margin: 20px auto;
   text-align: center;

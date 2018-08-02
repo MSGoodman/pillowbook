@@ -1424,32 +1424,37 @@
                     <div id="filters">
                         <h2>Filters</h2>
                         
-                        <label> Hide Complete
-                            <input type="checkbox" v-model="hideComplete">
-                        </label>
-                            
-                        <label> Hide Waiting On
-                            <input type="checkbox" v-model="hideWaitingOn">
-                        </label>
+                        <div>
+                            <label class="inline-label"> Hide Complete
+                                <input type="checkbox" v-model="hideComplete">
+                            </label>
 
-                        <label> Pursuit: 
-                            <select v-model="pursuitFilter">
-                                <option v-for="pursuit in pursuitsForFilter" :value="pursuit.id">
-                                    [{ pursuit.icon }] [{ pursuit.name }]
-                                </option>
-                            </select>
-                        </label>
-                        <label> Project: 
-                            <select v-model="projectFilter">
-                                <option v-for="project in projects" :value="project.id">
-                                    [{ project.name }] 
-                                </option>
-                            </select>
-                        </label>
+                            <label class="inline-label"> Hide Waiting On
+                                <input type="checkbox" v-model="hideWaitingOn">
+                            </label>
+                        </div>
 
-                        <label class="inline-label"> <input type="radio" v-model="sortOn" value="rank"> Rank </label>
-                        <label class="inline-label">  <input type="radio" v-model="sortOn" value="pursuit"> Pursuit </label>
-                        
+                        <div>
+                            <label class="inline-label"> Pursuit: 
+                                <select v-model="pursuitFilter">
+                                    <option v-for="pursuit in pursuitsForFilter" :value="pursuit.id">
+                                        [{ pursuit.icon }] [{ pursuit.name }]
+                                    </option>
+                                </select>
+                            </label>
+                            <label class="inline-label"> Project: 
+                                <select v-model="projectFilter">
+                                    <option v-for="project in projects" :value="project.id">
+                                        [{ project.name }] 
+                                    </option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div>
+                            <label class="inline-label"> <input type="radio" v-model="sortOn" value="rank"> Rank </label>
+                            <label class="inline-label">  <input type="radio" v-model="sortOn" value="pursuit"> Pursuit </label>
+                        </div>
                     </div>
 
                     <draggable :list="sortedTasks" class="dragArea object-list" @end="checkMove" :options="dragOptions">
