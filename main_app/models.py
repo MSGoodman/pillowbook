@@ -10,9 +10,9 @@ from taggit.managers import TaggableManager
 from custom_user.models import AbstractEmailUser
 
 class User(AbstractEmailUser):
-    name = models.TextField(null = True, blank = True)
-    github_webhook_secret = models.TextField(blank=True,null=True)
-    github_username = models.TextField(blank=True,null=True)
+    name = models.TextField(null=True, blank=True)
+    github_webhook_secret = models.TextField(blank=True, null=True)
+    github_username = models.TextField(blank=True, null=True)
 
 class BaseModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

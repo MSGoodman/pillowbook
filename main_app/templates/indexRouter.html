@@ -1351,8 +1351,8 @@
                         myAxios.get("todo/" + date)
                             .then(response => this.todos = response.data)
                     },
-                    confirmNewTaskEntry: function() {
-                        console.log(this.highestRank + 1)
+                    confirmNewTaskEntry: function(event) {
+                        event.preventDefault();
                         var newTask = {
                             'name': this.newTaskName,
                             'pursuit': this.newTaskPursuit,
@@ -1488,7 +1488,7 @@
                                     </option>
                                 </select>
                             </label>
-                            <button class="btn btn-primary" v-on:click="confirmNewTaskEntry" :disabled="newEntryDisabled" :class="{ disabled: newEntryDisabled }"> Create New </button>
+                            <button class="btn btn-primary" v-on:click="confirmNewTaskEntry($event)" :disabled="newEntryDisabled" :class="{ disabled: newEntryDisabled }"> Create New </button>
                         </form>
                     </div>
 
@@ -3612,7 +3612,7 @@
                                     <router-link to="/pursuits"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('pursuits')"><span> Pursuits &#128209; </span> </a> </router-link>
                                     <router-link to="/cardio"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('cardio')"><span> Cardio 🏃 </span> </a> </router-link>
                                     <router-link to="/weight"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('weight')"><span> Weight 💪 </span> </a> </router-link>
-                                    <router-link to="/foods"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('fooditems')"><span> Foods 🍔 </span> </a> </router-link>
+                                    <router-link to="/fooditems"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('fooditems')"><span> Foods 🍔 </span> </a> </router-link>
                                     <router-link to="/recipe"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('recipes')"><span> Recipe 🍲 </span> </a> </router-link>
                                     <router-link to="/filmsToWatch"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('filmsToWatch')"><span> To Watch 🎥 </span> </a> </router-link>
                                     <router-link to="/boardgamesToPlay"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('boardgamesToPlay')"><span> To Play 🎲 </span> </a> </router-link>

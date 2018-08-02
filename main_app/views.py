@@ -55,6 +55,18 @@ def make_new_user_module_buttons(user_instance):
     ModuleButton.objects.create(name='Groceries',url_name='grocerypurchase',icon_font_awesome='cart-plus',user=user_instance)
     ModuleButton.objects.create(name='Meals',url_name='meal',icon_font_awesome='utensils',user=user_instance)
     ModuleButton.objects.create(name='Travel',url_name='travel',icon_font_awesome='globe-americas',user=user_instance)
+    work_pursuit = Pursuit.objects.create(name='Work',icon='💼',user=user_instance)
+    Pursuit.objects.create(name='Fitness',icon='💪',user=user_instance)
+    home_pursuit = Pursuit.objects.create(name='Home Improvement',icon='🏠', user=user_instance)
+    Project.objects.create(name='That Big Work Project', pursuit=work_pursuit, description='Integrate blockchain-enabled machine-learning AI into decentralized actionable analytics microservices IoT platform for Q1', user=user_instance)
+    Project.objects.create(name='Build Porch', pursuit=home_pursuit, description="That porch isn't going to build itself", user=user_instance)
+    WeightExerciseType.objects.create(name='Bench Press', user=user_instance)
+    WeightExerciseType.objects.create(name='Barbell Row', user=user_instance)
+    CardioExerciseType.objects.create(name='Running', user=user_instance)
+    CardioExerciseType.objects.create(name='Cycling', user=user_instance)
+    FoodItem.objects.create(name='Chicken Breast', serving_size_qty=3.5, serving_size_unit='oz',calories=165,total_fat=3.6,saturated_fat=1,trans_fat=0,cholesterol=85,sodium=74,potassium=250,total_carbs=0,total_sugars=0,added_sugars=0,protein=31, user=user_instance)
+    Quiz.objects.create(name='Countries', url='http://mikesgoodman.com/WorldGeographyQuiz/', total_records=201, user=user_instance)
+    Quiz.objects.create(name='U.S. States', url='http://mikesgoodman.com/UsGeographyQuiz/', total_records=201, user=user_instance)
 
 def app_signup(request):
     if request.POST:
