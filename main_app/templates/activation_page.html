@@ -43,22 +43,7 @@
             <div class="col">
 
                 <div>{{ error }}</div>
-                <div>{{ success }}</div>
 
-                <h1><img class="logo-img" src="{% static 'placeholder-icon.png' %}" /> PillowBook </h1>
-                <div class="form-card">
-                    <div class="card-header">Sign In</div>
-                    <form id="login" method="post" action="login">{% csrf_token %}
-                        <label for="email"> Email </label>
-                        <input type="text" id="email" name="email" placeholder="Email">
-                        <label for="password"> Password </label>
-                        <input type="password" id="password" name="password" placeholder="Password">
-            
-                        <button type="submit" form="login" value="Submit" class="btn btn-primary">Sign In</button> 
-                    </form>
-
-                    <p>Don't have an account? <a href="signup">Sign up!</a></p>
-                </div>
             </div>
             </div>
     </div>

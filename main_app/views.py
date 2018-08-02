@@ -1,8 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from .forms import *
-from datetime import timezone, timedelta, datetime
+from datetime import timedelta, datetime
+from django.utils import timezone
 from django.db.models import Sum, Avg
 from django.contrib.auth import authenticate, login, logout
 from custom_user.forms import EmailUserCreationForm
@@ -15,8 +16,37 @@ from django.core import serializers
 
 from .models import *
 
+def app_activate(request, key):
+    activation_expired = False
+    already_active = False
+
+    try:
+        user = User.objects.get(activation_key=key)
+    except User.DoesNotExist:
+        return render(request, 'activation_page.html', {'error': 'Invalid activation key.'})
+
+    if user.is_active == False:
+        if timezone.now() > user.key_expires: # Expired
+            activation_expired = True
+            id_user = user.id
+            return render(request, 'activation_page.html', {'error': 'Your activation link has expired. A new email has been sent.'})
+        else: #Activated
+            user.is_active = True
+            user.save()
+            return redirect('login')
+
+    #If user is already active, simply display error message
+    else:
+        already_active = True #Display : error message
+        return render(request, 'activation_page.html', {'error': 'Your account is already activated.'})
+
 def app_login(request):
     if request.POST:
+
+        user_email = User.objects.get(email=request.POST['email'])
+        if not user_email.is_active:
+            return render(request, 'login_page.html', {'error': 'Sorry! You must activate your account via the link sent to your email address.' })
+
         user = authenticate(username = request.POST['email'], password = request.POST['password'])
         response = HttpResponse()
         if user is None:
@@ -85,7 +115,7 @@ def app_signup(request):
         if pass1 == pass2:
             # Make User
             activation_key = generate_activation_key(email)
-            key_expires = datetime.strftime(datetime.now() + timedelta(days=2), "%Y-%m-%d %H:%M:%S")
+            key_expires = datetime.strftime(datetime.utcnow() + timedelta(days=2), "%Y-%m-%d %H:%M:%S")
 
             new_user = User.objects.create_user(email, pass1,activation_key=activation_key,is_active=False,key_expires=key_expires)
             # Make Module Buttons
@@ -104,24 +134,6 @@ def app_signup(request):
 
     raise Http404('Something Is Not Set Right')
 
-
-    return render(request, 'signup.html', {'form':EmailUserCreationForm()})
-    if request.method == 'POST':
-        form = EmailUserCreationForm(request.POST)
-        print(form, form.is_valid())
-        if form.is_valid():
-            return render(request, 'indexRouter.html', {})
-            form.save()
-            email = form.cleaned_data.get('email')
-            raw_password = form.cleaned_data.get('password1')
-            print(email, raw_password)
-            user = authenticate(email=email, password=raw_password)
-            login(request, user)
-            return HttpResponseRedirect('/')
-    else:
-        form = EmailUserCreationForm()
-    return render(request, 'signup.html', {'form': form})
-
 def module(request):
     return render(request, 'modules.html', {})
 
@@ -130,7 +142,7 @@ def index(request):
     last_seven_days = []
     for i in range(0, 7):
         last_seven_days.append({})
-        date = datetime.now().date() - timedelta(i)
+        date = datetime.utcnow().date() - timedelta(i)
     
         last_seven_days[i]['Date'] = date
 
