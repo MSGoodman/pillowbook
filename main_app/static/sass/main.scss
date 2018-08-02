@@ -238,7 +238,7 @@ label {
 .object-list {
     display: inline-block;
     text-align: left;
-    width: 70%;
+    width: 85%;
 }
 
 .object-list-flex {
@@ -311,7 +311,7 @@ label {
 
 #filters {
     border: 1px solid grey;
-    width: 70%;
+    width: 90%;
     margin: 0 auto;
     margin-top: 10px;
     margin-bottom: 10px;
@@ -426,7 +426,9 @@ h2 {
         background-color: $color-bg-darker-grey;
     }
 }
-
+.todo-name {
+    font-size: 0.9em;
+}
 .todo-rank {
     font-size: 0.5em;
 }

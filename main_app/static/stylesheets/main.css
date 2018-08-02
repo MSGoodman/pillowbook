@@ -384,7 +384,7 @@ label {
 .object-list {
   display: inline-block;
   text-align: left;
-  width: 70%;
+  width: 85%;
 }
 
 /* line 244, ../sass/main.scss */
@@ -473,7 +473,7 @@ label {
 /* line 312, ../sass/main.scss */
 #filters {
   border: 1px solid grey;
-  width: 70%;
+  width: 90%;
   margin: 0 auto;
   margin-top: 10px;
   margin-bottom: 10px;
@@ -616,17 +616,22 @@ h2 {
   background-color: #c6c6c4;
 }
 
-/* line 430, ../sass/main.scss */
+/* line 429, ../sass/main.scss */
+.todo-name {
+  font-size: 0.9em;
+}
+
+/* line 432, ../sass/main.scss */
 .todo-rank {
   font-size: 0.5em;
 }
 
-/* line 434, ../sass/main.scss */
+/* line 436, ../sass/main.scss */
 .inline-label {
   display: inline;
 }
 
-/* line 438, ../sass/main.scss */
+/* line 440, ../sass/main.scss */
 .draggable {
   cursor: move;
   /* fallback: no `url()` support or images disabled */
@@ -640,7 +645,7 @@ h2 {
   /* W3C standards syntax, should come least */
 }
 
-/* line 445, ../sass/main.scss */
+/* line 447, ../sass/main.scss */
 .draggable:active {
   cursor: url(images/grabbing.cur);
   cursor: -webkit-grabbing;
@@ -648,13 +653,13 @@ h2 {
   cursor: grabbing;
 }
 
-/* line 452, ../sass/main.scss */
+/* line 454, ../sass/main.scss */
 .vue-star-rating {
   display: inline-block !important;
 }
 
 /* TODO STYLES */
-/* line 458, ../sass/main.scss */
+/* line 460, ../sass/main.scss */
 .blink {
   font-size: 0.8em;
   animation: blink_effect 2s linear infinite;
@@ -673,7 +678,7 @@ h2 {
   }
 }
 /* AUTOCOMPLETE */
-/* line 477, ../sass/main.scss */
+/* line 479, ../sass/main.scss */
 .autocomplete {
   position: relative;
   font-weight: normal;
@@ -681,7 +686,7 @@ h2 {
   width: 100%;
 }
 
-/* line 484, ../sass/main.scss */
+/* line 486, ../sass/main.scss */
 .autocomplete-results {
   background-color: white;
   padding: 0;
@@ -692,7 +697,7 @@ h2 {
   overflow: auto;
 }
 
-/* line 494, ../sass/main.scss */
+/* line 496, ../sass/main.scss */
 .autocomplete-result {
   list-style: none;
   text-align: left;
@@ -700,20 +705,20 @@ h2 {
   cursor: pointer;
 }
 
-/* line 502, ../sass/main.scss */
+/* line 504, ../sass/main.scss */
 .autocomplete-result.is-active,
 .autocomplete-result:hover {
   background-color: #4AAE9B;
   color: white;
 }
 
-/* line 508, ../sass/main.scss */
+/* line 510, ../sass/main.scss */
 .fooditem {
   width: 300px;
 }
 
 /* NUTRITION FACTS */
-/* line 513, ../sass/main.scss */
+/* line 515, ../sass/main.scss */
 .nutrition-label {
   background-color: white;
   font-family: 'Arimo',Arial, Helvetica, sans-serif;
@@ -722,67 +727,67 @@ h2 {
   display: inline-block;
   padding: 0 5px 5px 5px;
 }
-/* line 521, ../sass/main.scss */
+/* line 523, ../sass/main.scss */
 .nutrition-label .divider-large {
   background-color: black;
   height: 10px;
   margin: 3px 0 3px 0;
 }
-/* line 526, ../sass/main.scss */
+/* line 528, ../sass/main.scss */
 .nutrition-label .divider-small {
   background-color: black;
   height: 4px;
   margin: 3px 0 3px 0;
 }
-/* line 531, ../sass/main.scss */
+/* line 533, ../sass/main.scss */
 .nutrition-label h1 {
   margin: 0;
   padding: 0;
   font-family: 'Libre Franklin',Arial, Helvetica, sans-serif;
   font-weight: 900;
 }
-/* line 537, ../sass/main.scss */
+/* line 539, ../sass/main.scss */
 .nutrition-label input {
   width: 30px;
 }
-/* line 540, ../sass/main.scss */
+/* line 542, ../sass/main.scss */
 .nutrition-label .wider-input {
   width: 100px;
 }
-/* line 543, ../sass/main.scss */
+/* line 545, ../sass/main.scss */
 .nutrition-label .nutrition-line {
   border-top: 1px solid black;
 }
-/* line 546, ../sass/main.scss */
+/* line 548, ../sass/main.scss */
 .nutrition-label .nutrition-subline {
   font-size: 0.9em;
   border-top: 1px solid black;
   padding-left: 10px;
 }
-/* line 551, ../sass/main.scss */
+/* line 553, ../sass/main.scss */
 .nutrition-label .nutrition-subsubline {
   font-size: 0.9em;
   border-top: 1px solid black;
   padding-left: 20px;
 }
-/* line 556, ../sass/main.scss */
+/* line 558, ../sass/main.scss */
 .nutrition-label .nutrition-notes {
   font-size: 0.6em;
   overflow-wrap: normal;
   width: 240px;
 }
 
-/* line 563, ../sass/main.scss */
+/* line 565, ../sass/main.scss */
 #app {
   height: 100%;
 }
 
-/* line 566, ../sass/main.scss */
+/* line 568, ../sass/main.scss */
 #travel-section {
   height: 100%;
 }
 
-/* line 569, ../sass/main.scss */
+/* line 571, ../sass/main.scss */
 #map {
   margin: 20px auto;
   text-align: center;
