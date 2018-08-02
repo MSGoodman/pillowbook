@@ -121,7 +121,8 @@
                         date: dateToString(new Date()),
                         entries: [],
                         newEntry: {},
-                        showNewEntry: false
+                        showNewEntry: false,
+                        mandatoryFields:[]
                     }
                 },
                 mounted: function() {
@@ -146,7 +147,14 @@
                             });
                     },
                 },
-                computed: { sortedEntries: function(){ return this.entries } },
+                computed: { 
+                    sortedEntries: function(){ return this.entries },
+                    newEntryDisabled: function(){ 
+                        var disabled = false;
+                        this.mandatoryFields.forEach(field => { if (!this.newEntry.hasOwnProperty(field) || this.newEntry[field].length === 0) { disabled = true; } });
+                        return disabled;
+                    }
+                },
             }
             
             var optionsStore = {
@@ -162,6 +170,7 @@
                 methods: {
                     clicked: function(){
                         this.$emit('newEntryClicked');
+                        return false;
                     }
                 },
                 template:
@@ -365,7 +374,7 @@
             Vue.component('overview-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="overview-item item-main-body">
+                `<div v-if="!deleted" class="overview-item item-main-body">
                     <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
                     style="float:left;">
                         <span v-if="showOptions">▴</span>
@@ -399,7 +408,7 @@
             });
             overviewComponent = Vue.component('overview-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "overview",} },
+                data: function() { return { endpoint: "overview", mandatoryFields: ['highlights', 'description'],} },
                 template:
                 `
                 <div>
@@ -414,18 +423,12 @@
                         </overview-item>
                     </div>
                     
-                    <div id="newOverview" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Highlights: <input type="text" v-model="newEntry.highlights" /> </label>
-                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
                         <label>Description: <textarea v-model="newEntry.description" style="width:25%;"/> </textarea> </label>
+                    </new-entry-form>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
-
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry" v-if="sortedEntries.length < 1"> New Overview </button>
-                    </div>
                 </div>
                 `
             })
@@ -468,7 +471,7 @@
             });
             sleepComponent = Vue.component('sleep-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "sleep",} },
+                data: function() { return { endpoint: "sleep", mandatoryFields: ['start_time', 'end_time'],} },
                 template:
                 `
                 <div>
@@ -483,16 +486,11 @@
                         </sleep-item>
                     </div>
                     
-                    <div id="newSleep" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Time Started: <input type="time" v-model="newEntry.start_time" /> </label>
                         <label>Time Ended: <input type="time" v-model="newEntry.end_time" /> </label>
+                    </new-entry-form>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
-
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Sleep </button>
-                    </div>
                 </div>
                 `
             });
@@ -532,8 +530,8 @@
             });
             weightComponent = Vue.component('weight-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "weight", weightTypes: [], } },
-                computed: { sortedEntries: function(){ return _.orderBy(this.entries, ['start_time']); } },
+                data: function() { return { endpoint: "weight", weightTypes: [], mandatoryFields: ['type', 'start_time', 'end_time', 'weight', 'reps'],} },
+                computed: { sortedEntries: function(){ return _.orderBy(this.entries, ['start_time']); }, },
                 methods: {
                     getAllWeightTypes: function() {
                         myAxios.get("weightTypes")
@@ -556,7 +554,7 @@
                         </weight-item>
                     </div>
                     
-                    <div id="newWeight" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label> Exercise: 
                             <select v-model="newEntry.type">
                                 <option v-for="exercise in weightTypes" :value="exercise.id">
@@ -569,12 +567,7 @@
                         <label>Reps: <input type="number" v-model="newEntry.reps" /> </label>
                         <label>Time Started: <input type="time" v-model="newEntry.start_time" /> </label>
                         <label>Time Ended: <input type="time" v-model="newEntry.end_time" /> </label>
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
-
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Weight </button>
-                    </div>
+                    </new-entry-form>
 
                     <side-buttons :weight="true" ></side-buttons>
 
@@ -616,8 +609,8 @@
             });
             cardioComponent = Vue.component('cardio-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "cardio", cardioTypes: [], } },
-                computed: { sortedEntries: function(){ return _.orderBy(this.entries, ['start_time']); }},
+                data: function() { return { endpoint: "cardio", cardioTypes: [], mandatoryFields: ['start_time', 'end_time'],} },
+                computed: { sortedEntries: function(){ return _.orderBy(this.entries, ['start_time']); }, },
                 mounted: function() { this.getAllCardioTypes(); },
                 methods: {
                     getAllCardioTypes: function() {
@@ -640,7 +633,7 @@
                         </cardio-item>
                     </div>
                     
-                    <div id="newCardio" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label> Exercise: 
                             <select v-model="newEntry.type">
                                 <option v-for="exercise in cardioTypes" :value="exercise.id">
@@ -651,13 +644,8 @@
                         <label>Calories Burned: <input type="number" v-model="newEntry.calories_burned" /> </label>
                         <label>Time Started: <input type="time" v-model="newEntry.start_time" /> </label>
                         <label>Time Ended: <input type="time" v-model="newEntry.end_time" /> </label>
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Cardio </button>
-                    </div>
-                    
                     <side-buttons :cardio="true" ></side-buttons>
                 </div>
                 `
@@ -704,12 +692,12 @@
             });
             toiletComponent = Vue.component('toilet-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "toilet",} },
+                data: function() { return { endpoint: "toilet", mandatoryFields: ['start_time', 'end_time'],} },
                 computed: {
                     bristolImageSrc: function() {
                         var imgName = "bristol" + this.newEntry.bristol + ".png";
                         return `{% static imgName %}` + imgName
-                    }
+                    },
                 },
                 template:
                 `
@@ -725,19 +713,14 @@
                         </toilet-item>
                     </div>
                     
-                    <div id="newToilet" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                     
                         <label>Time Started: <input type="time" v-model="newEntry.start_time" /> </label>
                         <label>Time Ended: <input type="time" v-model="newEntry.end_time" /> </label>
                         <label>Bristol: <input type="number" v-model="newEntry.bristol" min="1" max="7" /> </label>
                         <img v-bind:src="bristolImageSrc" v-if="newEntry.bristol < 8 && newEntry.bristol > 0 " />
-                        <br>
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Toilet </button>
-                    </div>
                 </div>
                 `
             });
@@ -771,7 +754,7 @@
             });
             sexComponent = Vue.component('sex-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "sex",} },
+                data: function() { return { endpoint: "sex", mandatoryFields: ['type'],} },
                 template:
                 `
                 <div>
@@ -786,15 +769,11 @@
                         </sex-item>
                     </div>
                     
-                    <div id="newSex" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Type: <input type="text" v-model="newEntry.type" /> </label>
                         
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Sex </button>
-                    </div>
                 </div>
                 `
             });
@@ -822,7 +801,7 @@
             });
             periodComponent = Vue.component('period-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "period",} },
+                data: function() { return { endpoint: "period", mandatoryFields: ['period'],} },
                 template:
                 `
                 <div>
@@ -837,15 +816,11 @@
                         </period-item>
                     </div>
                     
-                    <div id="newPeriod" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Period: <input type="checkbox" v-model="newEntry.period"> 
                         
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Period </button>
-                    </div>
                 </div>
                 `
             });
@@ -925,7 +900,7 @@
             });
             learningComponent = Vue.component('learning-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "learning", options: optionsStore, } },
+                data: function() { return { endpoint: "learning", options: optionsStore, mandatoryFields: ['summary', 'details'],} },
                 template:
                 `
                 <div>
@@ -941,16 +916,12 @@
                         </learning-item>
                     </div>
                     
-                    <div id="newLearning" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Summary: <input type="text" v-model="newEntry.summary" /> </label>
                         <label>Details: <textarea v-model="newEntry.details" style="width:25%;"/> </textarea> </label>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Learning </button>
-                    </div>
                 </div>
                 `
             });
@@ -984,7 +955,7 @@
             });
             moneyComponent = Vue.component('money-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "money",} },
+                data: function() { return { endpoint: "money", mandatoryFields: ['amount', 'name', 'category'],} },
                 template:
                 `
                 <div>
@@ -999,17 +970,13 @@
                         </money-item>
                     </div>
                     
-                    <div id="newMoney" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                     
                         <label>Name:  <input v-model="newEntry.name"/>  </label>
                         <label>Amount: <input type="number" min="0.01" step="0.01" v-model="newEntry.amount" /> </label>
                         <label>Category: <input v-model="newEntry.category" /> </label>
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Money </button>
-                    </div>
                 </div>
                 `
             });
@@ -1058,7 +1025,7 @@
             });
             studyComponent = Vue.component('study-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "study", quizzes: [], } },
+                data: function() { return { endpoint: "study", quizzes: [], mandatoryFields: [],} },
                 computed: {
                     sortedEntries: function(){
                         var date = this.date;
@@ -1096,7 +1063,7 @@
                         </study-item>
                     </div>
                     
-                    <div id="newStudy" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         
                         <label> Quiz: 
                             <select v-model="newEntry.quiz">
@@ -1107,12 +1074,8 @@
                         </label>
                         <label>Correct Records: <input type="number" v-model="newEntry.correct_records" /> </label>
                     
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Study </button>
-                    </div>
 
                     <div id="summary-table-container">
                         <table id="summary-table">
@@ -1399,6 +1362,7 @@
                         }
                         this.showNew = false;
                         this.newToDo(newTask);
+                        return false;
                     },
                     newToDo: function(newTask) {
                         myAxios.post("todo", newTask)
@@ -1572,7 +1536,13 @@
                 computed: {
                     sortedPursuitProgresss: function(){
                         return this.entries;
-                    }
+                    },
+                    newEntryDisabled: function(){ 
+                        if (!this.newEntry.title || this.newEntry.title.length === 0) { return true; }
+                        if (!this.newEntry.author || this.newEntry.author.length === 0) { return true; }
+                        if (!this.newEntry.type || this.newEntry.type.length === 0) { return true; }
+                        if (!this.newEntry.up_to_page || this.newEntry.up_to_page.length === 0) { return true; }
+                    } 
                 },
                 mounted: function() {
                     this.getAllPursuits();
@@ -1654,15 +1624,7 @@
             });
             literatureComponent = Vue.component('literature-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "literature",} },
-                computed: {
-                    newEntryDisabled: function(){ 
-                        if (!this.newEntry.title || this.newEntry.title.length === 0) { return true; }
-                        if (!this.newEntry.author || this.newEntry.author.length === 0) { return true; }
-                        if (!this.newEntry.type || this.newEntry.type.length === 0) { return true; }
-                        if (!this.newEntry.up_to_page || this.newEntry.up_to_page.length === 0) { return true; }
-                    }
-                },
+                data: function() { return { endpoint: "literature", mandatoryFields: ['title', 'author', 'type', 'up_to_page'], } },
                 template:
                 `
                 <div>
@@ -1732,7 +1694,7 @@
             });
             filmComponent = Vue.component('film-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "film",} },
+                data: function() { return { endpoint: "film", mandatoryFields: ['title', 'director'], } },
                 template:
                 `
                 <div>
@@ -1747,19 +1709,14 @@
                         </film-item>
                     </div>
                     
-                    <div id="newFilm" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Title: <input type="text" v-model="newEntry.title" /> </label>
                         <label>Director: <input type="text" v-model="newEntry.director"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
                         <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
-
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Film </button>
-                    </div>
+                    </new-entry-form>
 
                     <side-buttons :film="true" ></side-buttons>
 
@@ -1807,7 +1764,7 @@
             });
             televisionComponent = Vue.component('television-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "television",} },
+                data: function() { return { endpoint: "television", mandatoryFields: ['series', 'episode'],} },
                 template:
                 `
                 <div>
@@ -1822,19 +1779,15 @@
                         </television-item>
                     </div>
                     
-                    <div id="newTelevision" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Series: <input type="text" v-model="newEntry.series" /> </label>
                         <label>Episode: <input type="text" v-model="newEntry.episode"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
                         <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Television </button>
-                    </div>
                 </div>
                 `
             });
@@ -1879,7 +1832,7 @@
             });
             bgComponent = Vue.component('boardgame-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "boardgame",} },
+                data: function() { return { endpoint: "boardgame", mandatoryFields: ['title', 'creator'],} },
                 template:
                 `
                 <div>
@@ -1894,19 +1847,14 @@
                         </boardgame-item>
                     </div>
                     
-                    <div id="newBoardGame" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Title: <input type="text" v-model="newEntry.title" /> </label>
                         <label>Creator: <input type="text" v-model="newEntry.creator"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
                         <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
-
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New BoardGame </button>
-                    </div>
+                    </new-entry-form>
 
                     <side-buttons :boardgames="true" ></side-buttons>
                 </div>
@@ -1955,7 +1903,7 @@
             });
             vgComponent = Vue.component('videogame-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "videogame",} },
+                data: function() { return { endpoint: "videogame", mandatoryFields: ['title', 'console', 'developer'],} },
                 template: 
                     `
                     <div id="videogame-page">
@@ -1971,21 +1919,16 @@
                         </videogame-item>
                         </div>
 
-                        <div id="newVideoGame" v-if="showNewEntry">
-                        <label>Title: <input type="text" v-model="newEntry.title" /> </label>
-                        <label>Console: <input type="text" v-model="newEntry.console"/> </label>
-                        <label>Developer: <input type="text" v-model="newEntry.developer"/> </label>
-                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
+                        <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
+                            <label>Title: <input type="text" v-model="newEntry.title" /> </label>
+                            <label>Console: <input type="text" v-model="newEntry.console"/> </label>
+                            <label>Developer: <input type="text" v-model="newEntry.developer"/> </label>
+                            <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
+                                inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                            <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                        </div>
+                        </new-entry-form>
 
-                        <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New VideoGame </button>
-
-                        </div>
                     </div>
                     `
             });
@@ -2030,7 +1973,7 @@
             });
             musicComponent = Vue.component('music-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "music",} },
+                data: function() { return { endpoint: "music", mandatoryFields: ['title', 'artist'],} },
                 template:
                 `
                 <div>
@@ -2045,19 +1988,15 @@
                         </music-item>
                     </div>
                     
-                    <div id="newMusic" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Title: <input type="text" v-model="newEntry.title" /> </label>
                         <label>Artist: <input type="text" v-model="newEntry.artist"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
                         <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Music </button>
-                    </div>
                 </div>
                 `
             });
@@ -2102,7 +2041,7 @@
             });
             podcastComponent = Vue.component('podcast-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "podcast",} },
+                data: function() { return { endpoint: "podcast", mandatoryFields: ['series', 'episode'],} },
                 template:
                 `
                 <div>
@@ -2117,19 +2056,15 @@
                         </podcast-item>
                     </div>
                     
-                    <div id="newPodcast" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Series: <input type="text" v-model="newEntry.series" /> </label>
                         <label>Episode: <input type="text" v-model="newEntry.episode"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
                         <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Podcast </button>
-                    </div>
                 </div>
                 `
             });
@@ -2174,7 +2109,7 @@
             });
             beerComponent = Vue.component('beer-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "beer",} },
+                data: function() { return { endpoint: "beer", mandatoryFields: ['name', 'brewery'],} },
                 template:
                 `
                 <div>
@@ -2189,19 +2124,15 @@
                         </beer-item>
                     </div>
                     
-                    <div id="newBeer" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Name: <input type="text" v-model="newEntry.name" /> </label>
                         <label>Brewery: <input type="text" v-model="newEntry.brewery"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
                         <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Beer </button>
-                    </div>
                 </div>
                 `
             });
@@ -2246,7 +2177,7 @@
             });
             wineComponent = Vue.component('wine-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "wine",} },
+                data: function() { return { endpoint: "wine", mandatoryFields: ['name', 'vineyard'],} },
                 template:
                 `
                 <div>
@@ -2261,19 +2192,15 @@
                         </wine-item>
                     </div>
                     
-                    <div id="newWine" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Name: <input type="text" v-model="newEntry.name" /> </label>
                         <label>Vineyard: <input type="text" v-model="newEntry.vineyard"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
                         <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Wine </button>
-                    </div>
                 </div>
                 `
             });
@@ -2317,7 +2244,7 @@
             });
             cheeseComponent = Vue.component('cheese-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "cheese",} },
+                data: function() { return { endpoint: "cheese", mandatoryFields: ['name'],} },
                 template:
                 `
                 <div>
@@ -2332,18 +2259,14 @@
                         </cheese-item>
                     </div>
                     
-                    <div id="newCheese" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Name: <input type="text" v-model="newEntry.name" /> </label>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
                         <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Cheese </button>
-                    </div>
                 </div>
                 `
             });
@@ -2378,7 +2301,7 @@
             });
             filmwishComponent = Vue.component('filmwish-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "filmwish", noMixinMounted: true, } },
+                data: function() { return { endpoint: "filmwish", noMixinMounted: true, mandatoryFields: ['title'],} },
                 mounted: function() {
                     myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
                 },
@@ -2395,11 +2318,10 @@
                         <button v-on:click="showNewEntry = !showNewEntry"> New FilmWish </button>
                     
                     </div>
-                    <div id="newFilmWish" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Title <input v-model="newEntry.title" width=25% /> </label>
                         <label>Director <input v-model="newEntry.director" width=25% /> </label>
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
                 </div>
                 `
             });
@@ -2434,7 +2356,7 @@
             });
             boardgamewishComponent = Vue.component('boardgamewish-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "boardgamewish", noMixinMounted: true, } },
+                data: function() { return { endpoint: "boardgamewish", noMixinMounted: true, mandatoryFields: ['title'],} },
                 mounted: function() {
                     myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
                 },
@@ -2451,11 +2373,10 @@
                         <button v-on:click="showNewEntry = !showNewEntry"> New BoardGameWish </button>
                     
                     </div>
-                    <div id="newBoardGameWish" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Title <input v-model="newEntry.title" width=25% /> </label>
                         <label>Creator <input v-model="newEntry.director" width=25% /> </label>
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
                 </div>
                 `
             });
@@ -2490,7 +2411,7 @@
             });
             literaturewishComponent = Vue.component('literaturewish-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "literaturewish", noMixinMounted: true, } },
+                data: function() { return { endpoint: "literaturewish", noMixinMounted: true, mandatoryFields: ['title'],} },
                 mounted: function() {
                     myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
                 },
@@ -2507,11 +2428,10 @@
                         <button v-on:click="showNewEntry = !showNewEntry"> New LiteratureWish </button>
                     
                     </div>
-                    <div id="newLiteratureWish" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Title <input v-model="newEntry.title" width=25% /> </label>
                         <label>Author <input v-model="newEntry.director" width=25% /> </label>
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
                 </div>
                 `
             });
@@ -2561,7 +2481,7 @@
             });
             cookingComponent = Vue.component('cooking-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "cooking", recipes: [], } },
+                data: function() { return { endpoint: "cooking", recipes: [], mandatoryFields: ['name'],} },
                 mounted: function() { myAxios.get("recipes").then(response => this.recipes = convertRatings(response.data)); },
                 methods: { getRecipeFromLoaded: function(id){ return this.recipes.find(p => p.id === id); }, },
                 template:
@@ -2579,7 +2499,7 @@
                         </cooking-item>
                     </div>
                     
-                    <div id="newCooking" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label> Recipe: 
                             <select v-model="newEntry.recipe">
                                 <option v-for="recipe in recipes" :value="recipe.id">
@@ -2591,12 +2511,7 @@
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
                         <label>Review: <textarea v-model="newEntry.review" style="width:25%;"/> </textarea> </label>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
-
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Cooking </button>
-                    </div>
+                    </new-entry-form>
 
                     <side-buttons :foods="true" :recipes="true" > </side-buttons>
                 </div>
@@ -2653,7 +2568,7 @@
             });
             groceriesComponent = Vue.component('groceries-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "grocerypurchase",  fooditems: [], barcode: "" } },
+                data: function() { return { endpoint: "grocerypurchase",  fooditems: [], barcode: "", mandatoryFields: ['price_per_unit', 'qty'], } },
                 mounted: function() { myAxios.get("foodItems").then(response => this.fooditems = convertRatings(response.data)); },
                 watch: {
                     barcode: function() {
@@ -2684,7 +2599,7 @@
                         </grocerypurchase-item>
                     </div>
                     
-                    <div id="newGroceryPurchase" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label> Item: 
                             <select v-model="newEntry.food_item">
                                 <option v-for="fooditem in fooditems" :value="fooditem.id">
@@ -2702,12 +2617,7 @@
                         <label>Store: <input v-model="newEntry.store" /> </label>
                         <label>Receipt Name: <input v-model="newEntry.receipt_name" /> </label>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
-
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New GroceryPurchase </button>
-                    </div>
+                    </new-entry-form>
 
                     <side-buttons :foods="true" > </side-buttons>
                 </div>
@@ -2772,6 +2682,7 @@
                         fooditems: [],
                         newMealFoodItem: {},
                         newMealRecipe: {},
+                        mandatoryFields: ['eat_time', 'location', 'cost'],
                     }
                 },
                 mounted: function() {
@@ -2806,7 +2717,7 @@
                         </meal-item>
                     </div>
                     
-                    <div id="newMeal" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
 
                         <div v-for="fooditem in newEntry.foods">
                             <span> [{ getFoodItemFromLoaded(fooditem).name }] </span>
@@ -2843,12 +2754,7 @@
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
-
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Meal </button>
-                    </div>
+                    </new-entry-form>
 
                     <side-buttons :foods="true" :recipes="true" > </side-buttons>
                 </div>
@@ -2890,8 +2796,7 @@
             });
             travelComponent = Vue.component('travel-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "travel", mapMarkers: [], }
-                },
+                data: function() { return { endpoint: "travel", mapMarkers: [], mandatoryFields: ['name', 'location_type', 'latitude', 'longitude'], }},
                 mounted: function() { this.loadGoogleMap(); },
                 methods: {
                     loadGoogleMap: function() {
@@ -2932,20 +2837,15 @@
                     </div>
                     
 
-                    <div id="newTravel" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                     
                         <label>Name: <input type="text" v-model="newEntry.name" /> </label>
                         <label>Location Type: <input type="text" v-model="newEntry.location_type"/> </label>
                         <label>Latitude: <input type="text" v-model="newEntry.latitude" /> </label>
                         <label>Longitude: <input type="text" v-model="newEntry.longitude" /> </label>
 
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Travel </button>
-                    </div>
-                    
                     <div id="map"></div>
                 </div>
                 `
@@ -3049,7 +2949,7 @@
             });
             projectComponent = Vue.component('project-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "projects", noMixinMounted: true, pursuits: [],} },
+                data: function() { return { endpoint: "projects", noMixinMounted: true, pursuits: [], mandatoryFields: ['name', 'description'],} },
                 mounted: function() {
                     myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
                     myAxios.get("pursuits").then(response => this.pursuits = convertRatings(response.data));
@@ -3064,14 +2964,12 @@
                         :endpoint="endpoint"
                         :pursuits="pursuits"></project>
                     
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Project </button>
                     
                     </div>
-                    <div id="newProject" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Name <input v-model="newEntry.name" width=25% /> </label>
                         <label>Description <textarea v-model="newEntry.description"></textarea> </label>
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
                     
                     <side-buttons :pursuits="true" ></side-buttons>
                 </div>
@@ -3090,7 +2988,7 @@
             });
             quizComponent = Vue.component('quiz-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "quizzes", noMixinMounted: true, } },
+                data: function() { return { endpoint: "quizzes", noMixinMounted: true, mandatoryFields: ['name', 'url', 'total_records'],} },
                 mounted: function() {
                     myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
                 },
@@ -3103,15 +3001,13 @@
                         :key="item.id"
                         :endpoint="endpoint"></quiz>
                     
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Quiz </button>
                     
                     </div>
-                    <div id="newQuiz" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Name <input v-model="newEntry.name" width=25% /> </label>
                         <label>URL <input v-model="newEntry.url"></input> </label>
                         <label>Total Records <input v-model="newEntry.total_records"></input> </label>
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
                 </div>
                 `
             });
@@ -3174,7 +3070,7 @@
             });
             pursuitComponent = Vue.component('pursuit-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "pursuits", noMixinMounted: true, } },
+                data: function() { return { endpoint: "pursuits", noMixinMounted: true, mandatoryFields: ['name', 'icon'],} },
                 mounted: function() {
                     myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
                 },
@@ -3191,15 +3087,11 @@
                         </pursuit-item>
                     </div>
 
-                    <div id="newPursuit" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Icon: <input v-model="newEntry.icon" /> </label>
                         <label>Name: <input v-model="newEntry.name" /> </label>
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Pursuit </button>
-                    </div>
                 </div>
                 `
             });
@@ -3229,7 +3121,7 @@
             });
             cardioexerciseComponent = Vue.component('cardioexercise-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "cardioTypes", noMixinMounted: true, } },
+                data: function() { return { endpoint: "cardioTypes", noMixinMounted: true, mandatoryFields: ['name'], } },
                 mounted: function() {
                     myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
                 },
@@ -3246,14 +3138,10 @@
                         </cardioexercise>
                     </div>
 
-                    <div id="newCardioType" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Name: <input v-model="newEntry.name" /> </label>
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Cardio Exercise </button>
-                    </div>
                 </div>
                 `
             });
@@ -3283,7 +3171,7 @@
             });
             weightexerciseComponent = Vue.component('weightexercise-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "weightTypes", noMixinMounted: true, } },
+                data: function() { return { endpoint: "weightTypes", noMixinMounted: true, mandatoryFields: ['name'], } },
                 mounted: function() {
                     myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
                 },
@@ -3300,14 +3188,10 @@
                         </weightexercise>
                     </div>
 
-                    <div id="newWeightType" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Name: <input v-model="newEntry.name" /> </label>
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
 
-                    <div>
-                        <button v-on:click="showNewEntry = !showNewEntry"> New Weight Exercise </button>
-                    </div>
                 </div>
                 `
             });
@@ -3371,7 +3255,7 @@
             });
             fooditemComponent = Vue.component('fooditem-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "foodItems", noMixinMounted: true, } },
+                data: function() { return { endpoint: "foodItems", noMixinMounted: true, mandatoryFields: ['name', 'serving_size_unit'],} },
                 mounted: function() {
                     myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
                 },
@@ -3509,7 +3393,7 @@
             });
             recipeComponent = Vue.component('recipe-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "recipes", noMixinMounted: true, fooditems: [], } },
+                data: function() { return { endpoint: "recipes", noMixinMounted: true, fooditems: [], mandatoryFields: ['name'],} },
                 mounted: function() {
                     myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
                     myAxios.get("foodItems").then(response => this.fooditems = convertRatings(response.data));
@@ -3529,11 +3413,10 @@
                     
                     </div>
 
-                    <div id="newRecipe" v-if="showNewEntry">
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <label>Name: <input v-model="newEntry.name" /> </label>
                         <label>Instructions: <textarea v-model="newEntry.details" /> </textarea></label>
-                        <button v-on:click="createNewEntry"> Save </button>
-                    </div>
+                    </new-entry-form>
                 </div>
                 `
             });
@@ -3718,8 +3601,8 @@
                                     <router-link to="/pursuits"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('pursuits')"><span> Pursuits &#128209; </span> </a> </router-link>
                                     <router-link to="/cardio"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('cardio')"><span> Cardio 🏃 </span> </a> </router-link>
                                     <router-link to="/weight"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('weight')"><span> Weight 💪 </span> </a> </router-link>
-                                    <router-link to="/foods"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('foods')"><span> Foods 🍔 </span> </a> </router-link>
-                                    <router-link to="/recipe"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('recipe')"><span> Recipe 🍲 </span> </a> </router-link>
+                                    <router-link to="/foods"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('fooditems')"><span> Foods 🍔 </span> </a> </router-link>
+                                    <router-link to="/recipe"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('recipes')"><span> Recipe 🍲 </span> </a> </router-link>
                                     <router-link to="/filmsToWatch"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('filmsToWatch')"><span> To Watch 🎥 </span> </a> </router-link>
                                     <router-link to="/boardgamesToPlay"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('boardgamesToPlay')"><span> To Play 🎲 </span> </a> </router-link>
                                     <router-link to="/booksToRead"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('booksToRead')"><span> To Read 📖 </span> </a> </router-link>
