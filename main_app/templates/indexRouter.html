@@ -168,7 +168,8 @@
             Vue.component('new-entry-form', {
                 props: ['newEntryDisabled'],
                 methods: {
-                    clicked: function(){
+                    clicked: function(event){
+                        event.preventDefault()
                         this.$emit('newEntryClicked');
                         return false;
                     }
@@ -178,7 +179,7 @@
                 <div>
                     <form class="new-entry-form">
                         <slot></slot>
-                        <button class="btn btn-primary" @click="clicked" :disabled="newEntryDisabled" :class="{ disabled: newEntryDisabled }"> Create New </button>
+                        <button class="btn btn-primary" @click="clicked($event)" :disabled="newEntryDisabled" :class="{ disabled: newEntryDisabled }"> Create New </button>
                     </form>
                 </div>
                 `
