@@ -13,6 +13,8 @@ class User(AbstractEmailUser):
     name = models.TextField(null=True, blank=True)
     github_webhook_secret = models.TextField(blank=True, null=True)
     github_username = models.TextField(blank=True, null=True)
+    activation_key = models.CharField(max_length=40)
+    key_expires = models.DateTimeField()
 
 class BaseModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
