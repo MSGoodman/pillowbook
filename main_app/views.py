@@ -15,6 +15,7 @@ from django.utils.crypto import get_random_string
 from django.core import serializers
 
 from .models import *
+from .local import *
 
 def app_activate(request, key):
     activation_expired = False
