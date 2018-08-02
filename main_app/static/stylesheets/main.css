@@ -373,21 +373,22 @@ label {
 .edit-icon {
   font-size: 1.1em;
   padding: 3px;
+  float: left;
 }
-/* line 232, ../sass/main.scss */
+/* line 233, ../sass/main.scss */
 .edit-icon:hover {
   background-color: #b2b2b2;
   border-radius: 5px;
 }
 
-/* line 238, ../sass/main.scss */
+/* line 239, ../sass/main.scss */
 .object-list {
   display: inline-block;
   text-align: left;
   width: 85%;
 }
 
-/* line 244, ../sass/main.scss */
+/* line 245, ../sass/main.scss */
 .object-list-flex {
   display: inline-flex;
   flex-wrap: wrap;
@@ -395,12 +396,12 @@ label {
   width: 70%;
 }
 
-/* line 251, ../sass/main.scss */
+/* line 252, ../sass/main.scss */
 .invisible {
-  display: none;
+  visibility: none;
 }
 
-/* line 255, ../sass/main.scss */
+/* line 256, ../sass/main.scss */
 .details-dropdown {
   background-color: #efefef;
   border-radius: 5px;
@@ -408,7 +409,7 @@ label {
   text-align: center;
 }
 
-/* line 262, ../sass/main.scss */
+/* line 263, ../sass/main.scss */
 .waiting-on {
   font-size: 0.65em;
   font-weight: 600;
@@ -417,30 +418,30 @@ label {
   margin-right: 5px;
 }
 
-/* line 269, ../sass/main.scss */
+/* line 270, ../sass/main.scss */
 .details-dropdown label {
   font-size: 0.75em;
   margin: 5px;
 }
 
-/* line 274, ../sass/main.scss */
+/* line 275, ../sass/main.scss */
 textarea {
   width: 60%;
   height: 125px;
   vertical-align: middle;
 }
 
-/* line 280, ../sass/main.scss */
+/* line 281, ../sass/main.scss */
 .pursuit {
   font-size: 1.2em;
 }
 
-/* line 284, ../sass/main.scss */
+/* line 285, ../sass/main.scss */
 .details-buttons {
   text-align: right;
 }
 
-/* line 287, ../sass/main.scss */
+/* line 288, ../sass/main.scss */
 .details-button {
   font-size: 0.75em;
   display: inline-block;
@@ -450,28 +451,28 @@ textarea {
   border: 1px solid grey;
 }
 
-/* line 296, ../sass/main.scss */
+/* line 297, ../sass/main.scss */
 .task-waiting {
   background-color: #ccccc9;
 }
 
-/* line 300, ../sass/main.scss */
+/* line 301, ../sass/main.scss */
 .task-completed {
   color: #b7b7b5;
 }
 
-/* line 305, ../sass/main.scss */
+/* line 306, ../sass/main.scss */
 .task-completed:hover {
   color: #878787;
 }
 
-/* line 309, ../sass/main.scss */
+/* line 310, ../sass/main.scss */
 #settings-pursuits {
   margin-top: 15px;
   font-size: .8em;
 }
 
-/* line 314, ../sass/main.scss */
+/* line 315, ../sass/main.scss */
 #filters {
   border: 1px solid grey;
   width: 90%;
@@ -480,21 +481,21 @@ textarea {
   margin-bottom: 10px;
 }
 
-/* line 322, ../sass/main.scss */
+/* line 323, ../sass/main.scss */
 h2 {
   margin: 0;
   padding: 0;
   margin-bottom: 10px;
 }
 
-/* line 328, ../sass/main.scss */
+/* line 329, ../sass/main.scss */
 .food-item {
   background-color: #e0e0de;
   padding: 5px;
   margin: 5px;
 }
 
-/* line 334, ../sass/main.scss */
+/* line 335, ../sass/main.scss */
 .food-time, .food-calories, .food-cost, .food-rating, .food-location {
   font-size: 0.75em;
   padding-left: 25px;
@@ -502,49 +503,49 @@ h2 {
   border-right: 1px solid grey;
 }
 
-/* line 341, ../sass/main.scss */
+/* line 342, ../sass/main.scss */
 .food-location {
   border-right: none;
 }
 
-/* line 345, ../sass/main.scss */
+/* line 346, ../sass/main.scss */
 .food-name {
   margin-left: 50px;
   padding-top: 5px;
 }
 
-/* line 350, ../sass/main.scss */
+/* line 351, ../sass/main.scss */
 .item-top-detail {
   font-size: 0.75em;
   padding-left: 25px;
   padding-right: 25px;
   border-right: 1px solid grey;
 }
-/* line 356, ../sass/main.scss */
+/* line 357, ../sass/main.scss */
 .item-top-detail:last-of-type {
   border-right: none;
 }
 
-/* line 361, ../sass/main.scss */
+/* line 362, ../sass/main.scss */
 .item-main-body {
   background-color: #e0e0de;
   padding: 5px;
   margin: 5px;
 }
 
-/* line 367, ../sass/main.scss */
+/* line 368, ../sass/main.scss */
 .item-3-col {
   width: 33%;
   display: inline-block;
 }
 
-/* line 372, ../sass/main.scss */
+/* line 373, ../sass/main.scss */
 .item-body-element {
   margin-left: 50px;
   padding-top: 5px;
 }
 
-/* line 377, ../sass/main.scss */
+/* line 378, ../sass/main.scss */
 .art-review {
   font-size: 0.8em;
   margin-top: 5px;
@@ -553,42 +554,42 @@ h2 {
   padding: 10px;
 }
 
-/* line 384, ../sass/main.scss */
+/* line 385, ../sass/main.scss */
 .quiz * {
   padding: 10px;
   text-decoration: none;
 }
 
-/* line 389, ../sass/main.scss */
+/* line 390, ../sass/main.scss */
 .project-header {
   margin-bottom: 10px;
   margin-top: 5px;
 }
 
-/* line 393, ../sass/main.scss */
+/* line 394, ../sass/main.scss */
 .project-name {
   font-size: 1.4em;
   font-weight: bold;
 }
 
-/* line 397, ../sass/main.scss */
+/* line 398, ../sass/main.scss */
 .project-pursuit {
   font-size: 0.8em;
 }
 
-/* line 400, ../sass/main.scss */
+/* line 401, ../sass/main.scss */
 .detail-column-25 {
   display: inline-block;
   width: 20%;
 }
 
-/* line 404, ../sass/main.scss */
+/* line 405, ../sass/main.scss */
 .pursuit-details-display {
   padding: 25px;
   font-size: 0.75em;
 }
 
-/* line 409, ../sass/main.scss */
+/* line 410, ../sass/main.scss */
 .pursuit-details-entry {
   font-size: 0.8em;
   margin-left: 25px;
@@ -596,44 +597,44 @@ h2 {
   border: 1px solid #cccccc;
 }
 
-/* line 416, ../sass/main.scss */
+/* line 417, ../sass/main.scss */
 .bristol-image {
   width: 300px;
 }
 
-/* line 419, ../sass/main.scss */
+/* line 420, ../sass/main.scss */
 .negamoney {
   color: red;
 }
 
-/* line 422, ../sass/main.scss */
+/* line 423, ../sass/main.scss */
 .todo-project {
   font-size: 0.8em;
   float: right;
 }
 
-/* line 427, ../sass/main.scss */
+/* line 428, ../sass/main.scss */
 .todo-item:hover {
   background-color: #c6c6c4;
 }
 
-/* line 431, ../sass/main.scss */
+/* line 432, ../sass/main.scss */
 .todo-name {
   font-size: 0.9em;
 }
 
-/* line 434, ../sass/main.scss */
+/* line 435, ../sass/main.scss */
 .todo-rank {
   font-size: 0.5em;
 }
 
-/* line 438, ../sass/main.scss */
+/* line 439, ../sass/main.scss */
 .inline-label {
   display: inline;
   margin: 0 10px;
 }
 
-/* line 443, ../sass/main.scss */
+/* line 444, ../sass/main.scss */
 .draggable {
   cursor: move;
   /* fallback: no `url()` support or images disabled */
@@ -647,7 +648,7 @@ h2 {
   /* W3C standards syntax, should come least */
 }
 
-/* line 450, ../sass/main.scss */
+/* line 451, ../sass/main.scss */
 .draggable:active {
   cursor: url(images/grabbing.cur);
   cursor: -webkit-grabbing;
@@ -655,13 +656,13 @@ h2 {
   cursor: grabbing;
 }
 
-/* line 457, ../sass/main.scss */
+/* line 458, ../sass/main.scss */
 .vue-star-rating {
   display: inline-block !important;
 }
 
 /* TODO STYLES */
-/* line 463, ../sass/main.scss */
+/* line 464, ../sass/main.scss */
 .blink {
   font-size: 0.8em;
   animation: blink_effect 2s linear infinite;
@@ -680,7 +681,7 @@ h2 {
   }
 }
 /* AUTOCOMPLETE */
-/* line 482, ../sass/main.scss */
+/* line 483, ../sass/main.scss */
 .autocomplete {
   position: relative;
   font-weight: normal;
@@ -688,7 +689,7 @@ h2 {
   width: 100%;
 }
 
-/* line 489, ../sass/main.scss */
+/* line 490, ../sass/main.scss */
 .autocomplete-results {
   background-color: white;
   padding: 0;
@@ -699,7 +700,7 @@ h2 {
   overflow: auto;
 }
 
-/* line 499, ../sass/main.scss */
+/* line 500, ../sass/main.scss */
 .autocomplete-result {
   list-style: none;
   text-align: left;
@@ -707,20 +708,20 @@ h2 {
   cursor: pointer;
 }
 
-/* line 507, ../sass/main.scss */
+/* line 508, ../sass/main.scss */
 .autocomplete-result.is-active,
 .autocomplete-result:hover {
   background-color: #4AAE9B;
   color: white;
 }
 
-/* line 513, ../sass/main.scss */
+/* line 514, ../sass/main.scss */
 .fooditem {
   width: 300px;
 }
 
 /* NUTRITION FACTS */
-/* line 518, ../sass/main.scss */
+/* line 519, ../sass/main.scss */
 .nutrition-label {
   background-color: white;
   font-family: 'Arimo',Arial, Helvetica, sans-serif;
@@ -729,67 +730,67 @@ h2 {
   display: inline-block;
   padding: 0 5px 5px 5px;
 }
-/* line 526, ../sass/main.scss */
+/* line 527, ../sass/main.scss */
 .nutrition-label .divider-large {
   background-color: black;
   height: 10px;
   margin: 3px 0 3px 0;
 }
-/* line 531, ../sass/main.scss */
+/* line 532, ../sass/main.scss */
 .nutrition-label .divider-small {
   background-color: black;
   height: 4px;
   margin: 3px 0 3px 0;
 }
-/* line 536, ../sass/main.scss */
+/* line 537, ../sass/main.scss */
 .nutrition-label h1 {
   margin: 0;
   padding: 0;
   font-family: 'Libre Franklin',Arial, Helvetica, sans-serif;
   font-weight: 900;
 }
-/* line 542, ../sass/main.scss */
+/* line 543, ../sass/main.scss */
 .nutrition-label input {
   width: 30px;
 }
-/* line 545, ../sass/main.scss */
+/* line 546, ../sass/main.scss */
 .nutrition-label .wider-input {
   width: 100px;
 }
-/* line 548, ../sass/main.scss */
+/* line 549, ../sass/main.scss */
 .nutrition-label .nutrition-line {
   border-top: 1px solid black;
 }
-/* line 551, ../sass/main.scss */
+/* line 552, ../sass/main.scss */
 .nutrition-label .nutrition-subline {
   font-size: 0.9em;
   border-top: 1px solid black;
   padding-left: 10px;
 }
-/* line 556, ../sass/main.scss */
+/* line 557, ../sass/main.scss */
 .nutrition-label .nutrition-subsubline {
   font-size: 0.9em;
   border-top: 1px solid black;
   padding-left: 20px;
 }
-/* line 561, ../sass/main.scss */
+/* line 562, ../sass/main.scss */
 .nutrition-label .nutrition-notes {
   font-size: 0.6em;
   overflow-wrap: normal;
   width: 240px;
 }
 
-/* line 568, ../sass/main.scss */
+/* line 569, ../sass/main.scss */
 #app {
   height: 100%;
 }
 
-/* line 571, ../sass/main.scss */
+/* line 572, ../sass/main.scss */
 #travel-section {
   height: 100%;
 }
 
-/* line 574, ../sass/main.scss */
+/* line 575, ../sass/main.scss */
 #map {
   margin: 20px auto;
   text-align: center;
@@ -798,6 +799,34 @@ h2 {
   width: 60%;
   height: 90%;
   border: 1px solid grey;
+}
+
+/* line 585, ../sass/main.scss */
+.details-dropdown {
+  position: relative;
+}
+
+/* line 589, ../sass/main.scss */
+.corner-update {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  text-align: right;
+  font-size: 0.75em;
+  color: green;
+}
+
+/* line 597, ../sass/main.scss */
+.update-appear {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* line 601, ../sass/main.scss */
+.update-fadeout {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s 1s, opacity 1s linear;
 }
 
 /*
