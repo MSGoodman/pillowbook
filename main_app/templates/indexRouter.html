@@ -14,8 +14,10 @@
     <link href="https://fonts.googleapis.com/css?family=Arimo" rel="stylesheet">
     <!-- JQuery -->
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
     <!-- Cookie -->
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
     <!-- Axios -->
@@ -101,12 +103,14 @@
             }
 
             var entryHandlingItemMixin = {
-                data: function() { return { showOptions: false, deleted: false, } },
+                data: function() { return { showOptions: false, deleted: false, updating: false, updated: false} },
                 props: ['entry','endpoint'],
                 delimiters: ["[{","}]"],
                 methods: {
                     updateEntry: function() {
                         myAxios.put(this.endpoint + "/" + this.entry.id, this.entry);
+                        this.updated = false; this.updating = true;
+                        setTimeout(() => { this.updating = false; this.updated = true; }, 500);
                     },
                     deleteEntry: function() {
                         this.deleted = true;
@@ -184,6 +188,45 @@
                 </div>
                 `
             });
+
+            Vue.component('entry-item', {
+                delimiters: ["[{","}]"],
+                props: ['deleted','updating','updated'],
+                data: function() {
+                    return {
+                        showOptions: false,
+                    }
+                },
+                methods: {
+                    deleteThisEntry: function(event){
+                        this.$emit('deleteEntry');
+                    },
+                },
+                template:
+                `
+                <div class="entry-item" v-if="!deleted">
+                    
+                    <span class="clickable edit-icon" @click="showOptions = !showOptions">
+                        <span v-if="showOptions"><i class="fas fa-chevron-circle-up"></i></span>
+                        <span v-else><i class="fas fa-chevron-circle-down"></i></span>
+                    </span>
+
+                    <slot name="display-section"></slot>
+                    
+                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                        
+                        <div class="corner-update" v-bind:class="[{'update-appear':updating, 'update-fadeout':updated, 'invisible': !updating && !updated}]"><i class="far fa-save"></i> Updated</div>
+
+                        <slot name="details-section"></slot>
+
+                        <div class="details-buttons"> 
+                            <slot name="details-buttons-section"></slot>
+                            <div class="clickable details-button" @click="deleteThisEntry()"> <span class="fas fa-trash-alt"></span> Delete Task </div>
+                        </div>
+                    </div>
+                </div>
+                `
+            })
 
             // Side buttons
             Vue.component('side-buttons', {
@@ -1591,42 +1634,33 @@
             Vue.component('literature-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="literature-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
-                    
-                    <div class="literature-info ">
+                `
+                <entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
+                        <template slot="display-section">
+                            <div class="literature-title item-body-element"> [{ entry.title }] 
+                            <span class="literature-type item-top-detail"> [{ entry.type }] </span>
+                            <span class="literature-title item-top-detail"> [{ entry.author }] </span>
+                            <span class="literature-title item-top-detail"> <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="15" :increment="0.5" 
+                                inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                            </div>
+                            
+                            <div class="literature-review art-review">
+                                    [{ entry.review }] 
+                            </div>
+                        </template>
                         
-                        <div class="literature-title item-body-element"> [{ entry.title }] 
-                        <span class="literature-type item-top-detail"> [{ entry.type }] </span>
-                        <span class="literature-title item-top-detail"> [{ entry.author }] </span>
-                        <span class="literature-title item-top-detail"> <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="15" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
-                        </div>
+                        <template slot="details-section">
+                            <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
+                            <label>Up To Page: <input type="number" v-model="entry.up_to_page" v-on:blur="updateEntry"/> </label>
+                            <label>Type: <input type="text" v-model="entry.type" v-on:blur="updateEntry"/> </label>
+                            <label>Author: <input type="text" v-model="entry.author" v-on:blur="updateEntry"/> </label>
+                            <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
+                                inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                            <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
+                        </template>
                         
-                        <div class="literature-review art-review">
-                                [{ entry.review }] 
-                        </div>
-
-                    </div>
-
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
-                        <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
-                        <label>Up To Page: <input type="number" v-model="entry.up_to_page" v-on:blur="updateEntry"/> </label>
-                        <label>Type: <input type="text" v-model="entry.type" v-on:blur="updateEntry"/> </label>
-                        <label>Author: <input type="text" v-model="entry.author" v-on:blur="updateEntry"/> </label>
-                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
-
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Literature </div>
-                        </div>
-                    </div>
-                </div>`,
+                </entry-item>
+                `,
             });
             literatureComponent = Vue.component('literature-page', {
                 mixins: [entryHandlingPageMixin],

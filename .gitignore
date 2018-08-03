@@ -8,3 +8,4 @@ staticfiles/*
 main_app/local.py
 lifesheet/local_settings.py
 main_app/static/stylesheets/*
+main_app/local.py

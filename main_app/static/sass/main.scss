@@ -228,6 +228,7 @@ label {
 .edit-icon {
     font-size: 1.1em;
     padding: 3px;
+    float: left;
 
     &:hover {
         background-color: $color-bg-darkest-grey;
@@ -249,7 +250,7 @@ label {
 }
 
 .invisible {
-    display: none;
+    visibility: none;
 }
 
 .details-dropdown {
@@ -581,3 +582,24 @@ h2 {
     border: 1px solid grey;
   }
   
+.details-dropdown {
+    position: relative;
+}
+
+.corner-update {
+    position : absolute;
+    top : 10px;
+    right : 20px;
+    text-align: right;
+    font-size: 0.75em;
+    color: green;
+}
+.update-appear {
+    visibility: visible;
+    opacity: 1;
+}
+.update-fadeout {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s 1s, opacity 1s linear;
+}
