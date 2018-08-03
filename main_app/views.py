@@ -41,21 +41,24 @@ def app_activate(request, key):
         return render(request, 'activation_page.html', {'error': 'Your account is already activated.'})
 
 def app_login(request):
+    print(request)
     if request.POST:
-
+        print('post')
         user_email = User.objects.get(email=request.POST['email'])
         if not user_email.is_active:
             return render(request, 'login_page.html', {'error': 'Sorry! You must activate your account via the link sent to your email address.' })
 
         user = authenticate(username = request.POST['email'], password = request.POST['password'])
-        response = HttpResponse()
         if user is None:
             return render(request, 'login_page.html', {'error': 'Incorrect login details' })
         else:
             login(request, user)
             return HttpResponseRedirect('/')
     else:
-        return render(request, 'login_page.html', {})
+        if request.user.is_authenticated:
+            return HttpResponseRedirect('/')
+        else:
+            return render(request, 'login_page.html', {})
     raise Http404('Something Is Not Set Right')
 
 def make_new_user_module_buttons(user_instance):
