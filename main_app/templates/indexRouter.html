@@ -14,10 +14,7 @@
     <link href="https://fonts.googleapis.com/css?family=Arimo" rel="stylesheet">
     <!-- JQuery -->
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script
-  src="https://code.jquery.com/jquery-3.3.1.min.js"
-  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-  crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <!-- Cookie -->
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
     <!-- Axios -->
@@ -37,7 +34,6 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.16.0/vuedraggable.min.js"></script>
     <!-- Bootstrap -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
@@ -50,7 +46,7 @@
 <body>
     <script>
         const myAxios = axios.create({
-            baseURL: 'https://www.pillow-book.com/api/', //'http://localhost:8000/api/', 
+            baseURL: 'http://localhost:8000/api/', //'https://www.pillow-book.com/api/', //'http://localhost:8000/api/', 
             timeout: 1000,
             headers: {
                 'X-CSRFToken': Cookies.get('csrftoken')
@@ -103,18 +99,21 @@
             }
 
             var entryHandlingItemMixin = {
-                data: function() { return { showOptions: false, deleted: false, updating: false, updated: false} },
+                data: function() { return { showOptions: false, deleted: false, updating: false, updated: false, hadChange: false } },
                 props: ['entry','endpoint'],
                 delimiters: ["[{","}]"],
                 methods: {
                     updateEntry: function() {
                         myAxios.put(this.endpoint + "/" + this.entry.id, this.entry);
-                        this.updated = false; this.updating = true;
-                        setTimeout(() => { this.updating = false; this.updated = true; }, 500);
+                        if (this.hadChange) { this.updated = false; this.updating = true; }
+                        setTimeout(() => { this.updating = false; this.updated = true; this.hadChange = false }, 500);
                     },
                     deleteEntry: function() {
                         this.deleted = true;
                         myAxios.delete(this.endpoint + "/" + this.entry.id);
+                    },
+                    inputChanged: function(event) {
+                        this.hadChange = true;
                     }
                 }
             }
@@ -201,19 +200,23 @@
                     deleteThisEntry: function(event){
                         this.$emit('deleteEntry');
                     },
+                    toggleDropdown: function(event) {
+                        var detailsDropdown = $(event.target).parents('.entry-item').children('.details-dropdown').first(); 
+                        detailsDropdown.slideToggle()
+                    }
                 },
                 template:
                 `
                 <div class="entry-item" v-if="!deleted">
                     
-                    <span class="clickable edit-icon" @click="showOptions = !showOptions">
+                    <span class="clickable edit-icon" @click="toggleDropdown($event)">
                         <span v-if="showOptions"><i class="fas fa-chevron-circle-up"></i></span>
                         <span v-else><i class="fas fa-chevron-circle-down"></i></span>
                     </span>
 
                     <slot name="display-section"></slot>
                     
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <div class="details-dropdown" style="display:none"> 
                         
                         <div class="corner-update" v-bind:class="[{'update-appear':updating, 'update-fadeout':updated, 'invisible': !updating && !updated}]"><i class="far fa-save"></i> Updated</div>
 
@@ -221,121 +224,12 @@
 
                         <div class="details-buttons"> 
                             <slot name="details-buttons-section"></slot>
-                            <div class="clickable details-button" @click="deleteThisEntry()"> <span class="fas fa-trash-alt"></span> Delete Task </div>
                         </div>
                     </div>
                 </div>
                 `
             })
 
-            // Side buttons
-            Vue.component('side-buttons', {
-                delimiters: ["[{","}]"],
-                props: ['modules','projects','quizzes','pursuits','cardio','weight','foods','recipes','film','lit','boardgames'],
-                template:
-                `
-                <section id="date-agnostic-element-container" v-if="false">
-                    <router-link to="/modules" v-if="modules">
-                        <a class="button" style="background-color:#C1A49E">
-                            <span class="button-label">Modules</span>
-                            <span class="button-icon"><!--🔲--> 	&#128306;</span>
-                        </a>
-                    </router-link>
-                    <router-link to="/projects" v-if="projects">
-                        <a class="button" style="background-color:#C1A49E">
-                            <span class="button-label">Projects</span>
-                            <span class="button-icon"><!--📂--> 	&#128193;</span>
-                        </a>
-                    </router-link>
-                    <router-link to="/quizzes" v-if="quizzes">
-                        <a class="button" style="background-color:#C1A49E">
-                            <span class="button-label">Quizzes</span>
-                            <span class="button-icon"><!--🍎--> 	&#127822;</span>
-                        </a>
-                    </router-link>
-                    <router-link to="/pursuits" v-if="pursuits">
-                        <a class="button" style="background-color:#C1A49E">
-                            <span class="button-label">Pursuits</span>
-                            <span class="button-icon"><!--📑-->   &#128209;</span>
-                        </a>
-                    </router-link>
-                    <router-link to="/cardioexercises" v-if="cardio">
-                        <a class="button" style="background-color:#C1A49E">
-                            <span class="button-label">Cardio</span>
-                            <span class="button-icon"><!--🏃--> 	🏃</span>
-                        </a>
-                    </router-link>
-                    <router-link to="/weightexercises" v-if="weight">
-                        <a class="button" style="background-color:#C1A49E">
-                            <span class="button-label">Weight</span>
-                            <span class="button-icon"><!--💪-->   💪</span>
-                        </a>
-                    </router-link>
-                    <router-link to="/fooditems" v-if="foods">
-                        <a class="button" style="background-color:#C1A49E">
-                            <span class="button-label">Foods</span>
-                            <span class="button-icon"><!--🍔-->   🍔</span>
-                        </a>
-                    </router-link>
-                    <router-link to="/recipes" v-if="recipes">
-                        <a class="button" style="background-color:#C1A49E">
-                            <span class="button-label">Recipe</span>
-                            <span class="button-icon"><!--🍲-->   🍲</span>
-                        </a>
-                    </router-link>
-                    <router-link to="/filmsToWatch" v-if="film">
-                        <a class="button" style="background-color:#C1A49E">
-                            <span class="button-label">To Watch</span>
-                            <span class="button-icon">🎥</span>
-                        </a>
-                    </router-link>
-                    <router-link to="/boardgamesToPlay" v-if="boardgames">
-                        <a class="button" style="background-color:#C1A49E">
-                            <span class="button-label">To Play</span>
-                            <span class="button-icon">🎲</span>
-                        </a>
-                    </router-link>
-                    <router-link to="/booksToRead" v-if="lit">
-                        <a class="button" style="background-color:#C1A49E">
-                            <span class="button-label">To Read</span>
-                            <span class="button-icon">📖</span>
-                        </a>
-                    </router-link>
-                </section>
-                `
-            })
-            Vue.component('options-buttons', {
-                delimiters: ["[{","}]"],
-                props: ['showOptionsButton'],
-                data: function() {
-                    return {
-                        showSettings: true,
-                        draggingDisabled: false,
-                        tabindent: false,
-                        options: optionsStore,
-                    }
-                },
-                computed: {
-                    showDisableDrag: function() {
-                        return this.$route.path === "/todo";
-                    }
-                },
-                template: 
-                `
-                <div v-if="showOptionsButton">
-                    <a class="clickable" id="settings-button" v-on:click="showSettings = !showSettings">
-                        <span class="button-icon"><!--🔧--> 	&#128295;</span>
-                    </a>
-
-                    <div id="settings-section" v-if="showSettings">
-                        <label v-if="showDisableDrag"> Disable Dragging <input type="checkbox" v-model="options.state.disableDrag"> </label>
-                        <label> Tab Indents Text <input type="checkbox" v-model="options.state.tabIndent"> </label>
-
-                    </div>
-                </div>
-                `
-            })
-            
             // Index
             Vue.component('module-button', {
                 delimiters: ["[{","}]"],
@@ -408,7 +302,7 @@
                         </module-button>
                     </div>
                     
-                    <side-buttons :modules="true" > </side-buttons>
+                    
                 
                 </div>
                 `
@@ -418,37 +312,35 @@
             Vue.component('overview-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div v-if="!deleted" class="overview-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="overview-info ">
+                    
+                    <template slot="display-section">
                         
-                        <div class="overview-name item-body-element"> [{ entry.highlights }] 
-                        <span class="overview-name item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                        <div class="overview-name item-body-element"> 
+                            [{ entry.highlights }] 
+                            <span class="item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5"  inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
-                        <div class="overview-review art-review">
-                                [{ entry.description }] 
+                        <div class="review-text">
+                            [{ entry.description }] 
                         </div>
 
-                    </div>
+                    </template>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
-                        <label>Hightlights: <input type="text" v-model="entry.highlights" v-on:blur="updateEntry"/> </label>
-                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Description: <textarea v-model="entry.description" v-on:blur="updateEntry"> </textarea></label>
+                    <template slot="details-section">
+                    
+                        <label>Hightlights: <input type="text" v-model="entry.highlights" @blur="updateEntry" @input="inputChanged()" /> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Description: <textarea v-model="entry.description" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
 
                         <div class="details-buttons"> 
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Overview </div>
                         </div>
-                    </div>
-                </div>`,
+
+                    </template>
+
+                </entry-item>`,
             });
             overviewComponent = Vue.component('overview-page', {
                 mixins: [entryHandlingPageMixin],
@@ -481,14 +373,10 @@
             Vue.component('sleep-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="sleep-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="sleep-info ">
+                    
+                    <template slot="display-section">
                         
                         <div class="item-body-element">
                             <b> [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] </b> ( [{ sleepDuration }] )
@@ -496,7 +384,7 @@
                         
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         
                         <label>Time Started: <input type="time" v-model="entry.start_time" /> </label>
                         <label>Time Ended: <input type="time" v-model="entry.end_time" /> </label>
@@ -505,7 +393,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Sleep </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
                 computed: {
                     sleepDuration: function(){
                         var duration = moment.utc(moment(this.entry.end_time,"HH:mm:ss").diff(moment(this.entry.start_time,"HH:mm:ss")))
@@ -544,28 +432,24 @@
                 mixins: [entryHandlingItemMixin],
                 props: ['weight-types'],
                 template: 
-                `<div  v-if="!deleted" class="weight-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="weight-info ">
+                    
+                    <template slot="display-section">
                         <span class="weight-start item-top-detail"> [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] </span>
                         <span class="weight-weight item-top-detail"> [{ entry.weight }] lbs </span>
                         <span class="weight-reps item-top-detail"> [{ entry.reps }] reps </span>
                         <div class="weight-type item-body-element"> [{ getWeightTypeName(entry.type) }] </div>
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Weight: <input type="number" v-model="entry.weight" v-on:blur="updateEntry"/> </label>
 
                         <div class="details-buttons"> 
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Workout </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
                 methods: {
                     getWeightTypeName: function(id){
                         return this.weightTypes.find(wt => wt.id === id).name;
@@ -613,7 +497,7 @@
                         <label>Time Ended: <input type="time" v-model="newEntry.end_time" /> </label>
                     </new-entry-form>
 
-                    <side-buttons :weight="true" ></side-buttons>
+                    
 
                 </div>
                 `
@@ -624,27 +508,23 @@
                 mixins: [entryHandlingItemMixin],
                 props: ['cardio-types'],
                 template: 
-                `<div  v-if="!deleted" class="cardio-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="cardio-info ">
+                    
+                    <template slot="display-section">
                         <span class="cardio-start item-top-detail"> [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] </span>
                         <span class="cardio-cardio item-top-detail"> [{ entry.calories_burned }] Cals </span>
                         <div class="cardio-type item-body-element"> [{ getCardioTypeName(entry.type) }] </div>
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Cardio: <input type="number" v-model="entry.cardio" /> </label>
 
                         <div class="details-buttons"> 
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Workout </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
                 methods: {
                     getCardioTypeName: function(id){
                         return this.cardioTypes.find(ct => ct.id === id).name;
@@ -690,7 +570,7 @@
                         <label>Time Ended: <input type="time" v-model="newEntry.end_time" /> </label>
                     </new-entry-form>
 
-                    <side-buttons :cardio="true" ></side-buttons>
+                    
                 </div>
                 `
             });
@@ -699,14 +579,10 @@
             Vue.component('toilet-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="toilet-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="toilet-info ">
+                    
+                    <template slot="display-section">
                         
                         <div class="item-body-element">
                             <b> [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] </b> 
@@ -716,7 +592,7 @@
                         
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         
                         <label>Time Started: <input type="time" v-model="entry.start_time" /> </label>
                         <label>Time Ended: <input type="time" v-model="entry.end_time" /> </label>
@@ -726,7 +602,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Toilet </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
                 computed: {
                     bristolImageSrc: function() {
                         var imgName = "bristol" + this.entry.bristol + ".png";
@@ -773,28 +649,24 @@
             Vue.component('sex-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="sex-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="sex-info ">
+                    
+                    <template slot="display-section">
                         
                         <div class="sex-name item-body-element"> [{ entry.type }] 
                         </div>
 
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Type: <input type="text" v-model="entry.type" v-on:blur="updateEntry"/> </label>
 
                         <div class="details-buttons"> 
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Sex </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
             });
             sexComponent = Vue.component('sex-page', {
                 mixins: [entryHandlingPageMixin],
@@ -826,14 +698,10 @@
             Vue.component('period-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="period-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="period-info ">
+                    
+                    <template slot="display-section">
                         
                         <div class="period-name item-body-element"> 
                             <label>Period: <input type="checkbox" v-model="entry.period" v-on:change="updateEntry"> </label>
@@ -841,7 +709,7 @@
 
                     </div>
 
-                </div>`,
+                </entry-item>`,
             });
             periodComponent = Vue.component('period-page', {
                 mixins: [entryHandlingPageMixin],
@@ -874,23 +742,19 @@
                 mixins: [entryHandlingItemMixin],
                 props: ['tabindent'],
                 template: 
-                `<div  v-if="!deleted" class="learning-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="learning-info ">
+                    
+                    <template slot="display-section">
                         
                         <div class="learning-name item-body-element"> <strong>[{ entry.summary }]</strong>
                         </div>
                         
-                        <div class="learning-review art-review">[{ entry.details }]</div>
+                        <div class="learning-review review-text">[{ entry.details }]</div>
 
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Summary: <input type="text" v-model="entry.summary" v-on:blur="updateEntry"/> </label>
                         <label>Review: <textarea v-model="entry.details" v-on:blur="updateEntry" @keydown.tab="textAreaTab"> </textarea></label>
 
@@ -898,7 +762,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Learning </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
                 methods: {
                     updateLearning: function() {
                         console.log(JSON.stringify(this.learning))
@@ -974,19 +838,19 @@
             Vue.component('money-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div v-if="!deleted" class="money-item">
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     <span class="clickable edit-icon" v-on:click="showOptions = !showOptions" style="display:inline-block">
                         <span v-if="showOptions">▴</span>
                         <span v-else>✎</span>
                     </span>
                     
-                    <div class="money-info" style="display:inline-block">
+                    <template slot="display-section">
                         <span class="money-amount" v-bind:class="[{negamoney: entry.amount > 0}]"> <b> $[{ entry.amount }] </b> </span>
                         <span class="money-name">[{ entry.name }] </span>
                         <span class="money-category item-top-detail" >[{ entry.category }] </span>
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Name:  <input v-model="entry.name" v-on:blur="updateEntry"/>  </label>
                         <label>Amount: <input type="number" min="0.01" step="0.01" v-model="entry.amount" v-on:blur="updateEntry" /> </label>
                         <label>Category: <input v-model="entry.category" v-on:blur="updateEntry"/> </label>
@@ -995,7 +859,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Money </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
             });
             moneyComponent = Vue.component('money-page', {
                 mixins: [entryHandlingPageMixin],
@@ -1030,18 +894,14 @@
                 mixins: [entryHandlingItemMixin],
                 props: ['quizzes'],
                 template: 
-                `<div  v-if="!deleted" class="study-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="study-info ">
+                    
+                    <template slot="display-section">
                         <div class="study-type item-body-element"><b>[{ getQuiz(entry.quiz).name }]</b> [{entry.correct_records}] / [{ getQuiz(entry.quiz).total_records }] ([{correctPercent}]%) </div>
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label> Quiz: 
                             <select v-model="entry.quiz">
                                 <option v-for="quiz in quizzes" :value="quiz.id">
@@ -1055,7 +915,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Workout </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
                 methods: {
                     getQuiz: function(id){
                         return this.quizzes.find(ct => ct.id === id);
@@ -1140,7 +1000,7 @@
                         </table>
                     </div>
 
-                    <side-buttons :quizzes="true" ></side-buttons>
+                    
                 </div>
                 `
             });
@@ -1535,7 +1395,7 @@
                         </form>
                     </div>
 
-                    <side-buttons :pursuits="true" :projects="true"></side-buttons>
+                    
                 </div> 
                 `
             });
@@ -1625,7 +1485,7 @@
                         </pursuit-progress-item>
                     </div>
 
-                    <side-buttons :pursuits="true" ></side-buttons>
+                    
                 </div>
                 `
             });
@@ -1636,28 +1496,31 @@
                 template: 
                 `
                 <entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
-                        <template slot="display-section">
-                            <div class="literature-title item-body-element"> [{ entry.title }] 
+                
+                    <template slot="display-section">
+                    
+                        <div class="literature-title item-body-element"> 
+                            [{ entry.title }] 
                             <span class="literature-type item-top-detail"> [{ entry.type }] </span>
                             <span class="literature-title item-top-detail"> [{ entry.author }] </span>
                             <span class="literature-title item-top-detail"> <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="15" :increment="0.5" 
                                 inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
-                            </div>
-                            
-                            <div class="literature-review art-review">
-                                    [{ entry.review }] 
-                            </div>
-                        </template>
+                        </div>
                         
-                        <template slot="details-section">
-                            <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
-                            <label>Up To Page: <input type="number" v-model="entry.up_to_page" v-on:blur="updateEntry"/> </label>
-                            <label>Type: <input type="text" v-model="entry.type" v-on:blur="updateEntry"/> </label>
-                            <label>Author: <input type="text" v-model="entry.author" v-on:blur="updateEntry"/> </label>
-                            <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
-                                inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                            <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
-                        </template>
+                        <div class="literature-review review-text">
+                                [{ entry.review }] 
+                        </div>
+                    </template>
+                    
+                    <template slot="details-section">
+                        <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry" @input="inputChanged()" /> </label>
+                        <label>Up To Page: <input type="number" v-model="entry.up_to_page" v-on:blur="updateEntry"/> </label>
+                        <label>Type: <input type="text" v-model="entry.type" v-on:blur="updateEntry"/> </label>
+                        <label>Author: <input type="text" v-model="entry.author" v-on:blur="updateEntry"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
+                    </template>
                         
                 </entry-item>
                 `,
@@ -1689,7 +1552,7 @@
                         <label>Review: <textarea v-model="newEntry.review" /> </textarea> </label>
                     </new-entry-form>
                     
-                    <side-buttons :lit="true" ></side-buttons>
+                    
                 </div>
                 `
             });
@@ -1698,14 +1561,10 @@
             Vue.component('film-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="film-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="film-info ">
+                    
+                    <template slot="display-section">
                         
                         <div class="film-title item-body-element"> [{ entry.title }] 
                         <span class="film-title item-top-detail"> [{ entry.director }] </span>
@@ -1713,13 +1572,13 @@
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
-                        <div class="film-review art-review">
+                        <div class="film-review review-text">
                                 [{ entry.review }] 
                         </div>
 
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
                         <label>Director: <input type="text" v-model="entry.director" v-on:blur="updateEntry"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
@@ -1730,7 +1589,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Film </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
             });
             filmComponent = Vue.component('film-page', {
                 mixins: [entryHandlingPageMixin],
@@ -1758,7 +1617,7 @@
 
                     </new-entry-form>
 
-                    <side-buttons :film="true" ></side-buttons>
+                    
 
                 </div>
                 `
@@ -1768,14 +1627,10 @@
             Vue.component('television-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="television-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="television-info ">
+                    
+                    <template slot="display-section">
                         
                         <div class="television-series item-body-element"> [{ entry.series }] 
                         <span class="television-series item-top-detail"> [{ entry.episode }] </span>
@@ -1783,13 +1638,13 @@
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
-                        <div class="television-review art-review">
+                        <div class="television-review review-text">
                                 [{ entry.review }] 
                         </div>
 
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Series: <input type="text" v-model="entry.series" v-on:blur="updateEntry"/> </label>
                         <label>Episode: <input type="text" v-model="entry.episode" v-on:blur="updateEntry"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
@@ -1800,7 +1655,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Television </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
             });
             televisionComponent = Vue.component('television-page', {
                 mixins: [entryHandlingPageMixin],
@@ -1836,14 +1691,10 @@
             Vue.component('boardgame-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="boardgame-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="boardgame-info ">
+                    
+                    <template slot="display-section">
                         
                         <div class="boardgame-title item-body-element"> [{ entry.title }] 
                         <span class="boardgame-title item-top-detail"> [{ entry.creator }] </span>
@@ -1851,13 +1702,13 @@
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
-                        <div class="boardgame-review art-review">
+                        <div class="boardgame-review review-text">
                                 [{ entry.review }] 
                         </div>
 
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
                         <label>Creator: <input type="text" v-model="entry.creator" v-on:blur="updateEntry"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
@@ -1868,7 +1719,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete BoardGame </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
             });
             bgComponent = Vue.component('boardgame-page', {
                 mixins: [entryHandlingPageMixin],
@@ -1896,7 +1747,7 @@
 
                     </new-entry-form>
 
-                    <side-buttons :boardgames="true" ></side-buttons>
+                    
                 </div>
             `
             });
@@ -1905,14 +1756,10 @@
             Vue.component('videogame-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="videogame-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="videogame-info ">
+                    
+                    <template slot="display-section">
                         
                         <div class="videogame-title item-body-element"> [{ entry.title }] 
                         <span class="videogame-console item-top-detail"> [{ entry.console }] </span>
@@ -1921,13 +1768,13 @@
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
-                        <div class="videogame-review art-review">
+                        <div class="videogame-review review-text">
                                 [{ entry.review }] 
                         </div>
 
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
                         <label>Console: <input type="text" v-model="entry.console" v-on:blur="updateEntry"/> </label>
                         <label>Developer: <input type="text" v-model="entry.developer" v-on:blur="updateEntry"/> </label>
@@ -1939,7 +1786,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete VideoGame </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
             });
             vgComponent = Vue.component('videogame-page', {
                 mixins: [entryHandlingPageMixin],
@@ -1977,14 +1824,10 @@
             Vue.component('music-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="music-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="music-info ">
+                    
+                    <template slot="display-section">
                         
                         <div class="music-title item-body-element"> [{ entry.title }] 
                         <span class="music-title item-top-detail"> [{ entry.artist }] </span>
@@ -1992,13 +1835,13 @@
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
-                        <div class="music-review art-review">
+                        <div class="music-review review-text">
                                 [{ entry.review }] 
                         </div>
 
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
                         <label>Artist: <input type="text" v-model="entry.artist" v-on:blur="updateEntry"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
@@ -2009,7 +1852,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Music </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
             });
             musicComponent = Vue.component('music-page', {
                 mixins: [entryHandlingPageMixin],
@@ -2045,14 +1888,10 @@
             Vue.component('podcast-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="podcast-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="podcast-info ">
+                    
+                    <template slot="display-section">
                         
                         <div class="podcast-series item-body-element"> [{ entry.series }] 
                         <span class="podcast-series item-top-detail"> [{ entry.episode }] </span>
@@ -2060,13 +1899,13 @@
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
-                        <div class="podcast-review art-review">
+                        <div class="podcast-review review-text">
                                 [{ entry.review }] 
                         </div>
 
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Series: <input type="text" v-model="entry.series" v-on:blur="updateEntry"/> </label>
                         <label>Episode: <input type="text" v-model="entry.episode" v-on:blur="updateEntry"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
@@ -2077,7 +1916,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Podcast </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
             });
             podcastComponent = Vue.component('podcast-page', {
                 mixins: [entryHandlingPageMixin],
@@ -2113,14 +1952,10 @@
             Vue.component('beer-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="beer-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="beer-info ">
+                    
+                    <template slot="display-section">
                         
                         <div class="beer-name item-body-element"> [{ entry.name }] 
                         <span class="beer-name item-top-detail"> [{ entry.brewery }] </span>
@@ -2128,13 +1963,13 @@
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
-                        <div class="beer-review art-review">
+                        <div class="beer-review review-text">
                                 [{ entry.review }] 
                         </div>
 
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Name: <input type="text" v-model="entry.name" v-on:blur="updateEntry"/> </label>
                         <label>Brewery: <input type="text" v-model="entry.brewery" v-on:blur="updateEntry"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
@@ -2145,7 +1980,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Beer </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
             });
             beerComponent = Vue.component('beer-page', {
                 mixins: [entryHandlingPageMixin],
@@ -2181,14 +2016,10 @@
             Vue.component('wine-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="wine-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="wine-info ">
+                    
+                    <template slot="display-section">
                         
                         <div class="wine-name item-body-element"> [{ entry.name }] 
                         <span class="wine-name item-top-detail"> [{ entry.vineyard }] </span>
@@ -2196,13 +2027,13 @@
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
-                        <div class="wine-review art-review">
+                        <div class="wine-review review-text">
                                 [{ entry.review }] 
                         </div>
 
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Name: <input type="text" v-model="entry.name" v-on:blur="updateEntry"/> </label>
                         <label>Vineyard: <input type="text" v-model="entry.vineyard" v-on:blur="updateEntry"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
@@ -2213,7 +2044,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Wine </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
             });
             wineComponent = Vue.component('wine-page', {
                 mixins: [entryHandlingPageMixin],
@@ -2249,27 +2080,23 @@
             Vue.component('cheese-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="cheese-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="cheese-info ">
+                    
+                    <template slot="display-section">
                         
                         <div class="cheese-name item-body-element"> [{ entry.name }] 
                         <span class="cheese-name item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
-                        <div class="cheese-review art-review">
+                        <div class="cheese-review review-text">
                                 [{ entry.review }] 
                         </div>
 
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Name: <input type="text" v-model="entry.name" v-on:blur="updateEntry"/> </label>
                         <label>Vineyard: <input type="text" v-model="entry.vineyard" v-on:blur="updateEntry"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
@@ -2280,7 +2107,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Cheese </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
             });
             cheeseComponent = Vue.component('cheese-page', {
                 mixins: [entryHandlingPageMixin],
@@ -2316,7 +2143,7 @@
                 mixins: [entryHandlingItemMixin],
                 template: 
                 `
-                <div v-if="!deleted">
+                <entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
                         <span v-if="showOptions">▴</span>
                         <span v-else>✎</span>
@@ -2327,7 +2154,7 @@
                         <span>[{ entry.director }] </span>
                     </span>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label> Title:  <input v-model="entry.title" v-on:blur="updateEntry"/>  </label>
                         <label> Director: <input v-model="entry.director" v-on:blur="updateEntry" /> </label>
 
@@ -2371,7 +2198,7 @@
                 mixins: [entryHandlingItemMixin],
                 template: 
                 `
-                <div v-if="!deleted">
+                <entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
                         <span v-if="showOptions">▴</span>
                         <span v-else>✎</span>
@@ -2382,7 +2209,7 @@
                         <span>[{ entry.creator }] </span>
                     </span>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label> Title:  <input v-model="entry.title" v-on:blur="updateEntry"/>  </label>
                         <label> Creator: <input v-model="entry.creator" v-on:blur="updateEntry" /> </label>
 
@@ -2426,7 +2253,7 @@
                 mixins: [entryHandlingItemMixin],
                 template: 
                 `
-                <div v-if="!deleted">
+                <entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
                         <span v-if="showOptions">▴</span>
                         <span v-else>✎</span>
@@ -2437,7 +2264,7 @@
                         <span>[{ entry.author }] </span>
                     </span>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label> Title:  <input v-model="entry.title" v-on:blur="updateEntry"/>  </label>
                         <label> Author: <input v-model="entry.author" v-on:blur="updateEntry" /> </label>
 
@@ -2481,26 +2308,22 @@
                 mixins: [entryHandlingItemMixin],
                 props: ['recipes'],
                 template: 
-                `<div  v-if="!deleted" class="cooking-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="cooking-info ">
+                    
+                    <template slot="display-section">
                         <div class="cooking-name item-body-element"> [{ getRecipeFromLoaded(entry.recipe).name }] 
                         <span class="cooking-name item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
-                        <div class="cooking-review art-review">
+                        <div class="cooking-review review-text">
                                 [{ entry.review }] 
                         </div>
 
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label> Recipe: 
                             <select v-model="entry.recipe" v-on:change="updateEntry">
                                 <option v-for="recipe in recipes" :value="recipe.id">
@@ -2516,7 +2339,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Cooking </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
                 methods: {getRecipeFromLoaded: function(id){ return this.recipes.find(p => p.id === id); }, }
             });
             cookingComponent = Vue.component('cooking-page', {
@@ -2553,7 +2376,7 @@
 
                     </new-entry-form>
 
-                    <side-buttons :foods="true" :recipes="true" > </side-buttons>
+                    
                 </div>
                 `
             });
@@ -2563,14 +2386,10 @@
                 mixins: [entryHandlingItemMixin],
                 props: ['fooditems'],
                 template: 
-                `<div  v-if="!deleted" class="grocerypurchase-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="grocerypurchase-info ">
+                    
+                    <template slot="display-section">
                         <span class="item-3-col"> <b> [{ (entry.price_per_unit - entry.discount_per_unit) * entry.qty | toCurrency}] </b> </span>
                         <span class="item-3-col"> 
                             <b> [{ entry.qty }]</b>
@@ -2581,7 +2400,7 @@
                         <span class="item-top-detail"> [{ entry.store }] </span>
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label> Item: 
                             <select v-model="entry.food_item" v-on:change="updateEntry">
                                 <option v-for="fooditem in fooditems" :value="fooditem.id">
@@ -2602,7 +2421,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete GroceryPurchase </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
                 methods: { getFoodItemFromLoaded: function(id){ return this.fooditems.find(p => p.id === id); },
                 }
             });
@@ -2659,7 +2478,7 @@
 
                     </new-entry-form>
 
-                    <side-buttons :foods="true" > </side-buttons>
+                    
                 </div>
                 `
             });
@@ -2669,14 +2488,10 @@
                 mixins: [entryHandlingItemMixin],
                 props: ['fooditems','recipes'],
                 template: 
-                `<div  v-if="!deleted" class="meal-item">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="meal-info">
+                    
+                    <template slot="display-section">
                         <span class="item-top-detail">⏰ [{ entry.eat_time | formatTime }] </span>
                         <span class="item-top-detail">[{ entry.calories }] Cal</span>
                         <span class="item-top-detail">$[{ entry.cost }] </span>
@@ -2690,7 +2505,7 @@
                         </div>
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Cost: <input type="number" min="0.01" step="0.01" v-model="entry.cost" /> </label>
                         <label>Time Ate: <input type="time" v-model="entry.eat_time" /> </label>
                         <label>Location: <input v-model="entry.location" /> </label>
@@ -2699,7 +2514,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Meal </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
                 methods: {
                     getFoodItemFromLoaded: function(id){
                         return this.fooditems.find(p => p.id === id);
@@ -2796,7 +2611,7 @@
 
                     </new-entry-form>
 
-                    <side-buttons :foods="true" :recipes="true" > </side-buttons>
+                    
                 </div>
                 `
             });
@@ -2805,14 +2620,10 @@
             Vue.component('travel-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div  v-if="!deleted" class="travel-item item-main-body">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"
-                    style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    <div class="travel-info ">
+                    
+                    <template slot="display-section">
                         
                         <div class="travel-name item-body-element"> [{ entry.name }] 
                         <span class="travel-type item-top-detail"> [{ entry.location_type }] </span>
@@ -2822,7 +2633,7 @@
 
                     </div>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Name: <input type="text" v-model="entry.name" v-on:blur="updateEntry"/> </label>
                         <label>Location Type: <input type="text" v-model="entry.location_type" v-on:blur="updateEntry"/> </label>
                         <label>Latitude: <input type="text" v-model="entry.latitude" v-on:blur="updateEntry"/> </label>
@@ -2832,7 +2643,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Travel </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
             });
             travelComponent = Vue.component('travel-page', {
                 mixins: [entryHandlingPageMixin],
@@ -3011,7 +2822,7 @@
                         <label>Description <textarea v-model="newEntry.description"></textarea> </label>
                     </new-entry-form>
                     
-                    <side-buttons :pursuits="true" ></side-buttons>
+                    
                 </div>
                 `
             });
@@ -3056,7 +2867,7 @@
             Vue.component('pursuit-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div v-if="!deleted" class="pursuit-item">
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
                         <span v-if="showOptions">▴</span>
                         <span v-else>✎</span>
@@ -3067,7 +2878,7 @@
                         <span class="pursuit-name">[{ entry.name }] </span>
                     </span>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label> Icon:  <input v-model="entry.icon" v-on:blur="updateEntry"/>  </label>
                         <label>Name: <input v-model="entry.name" v-on:blur="updateEntry" /> </label>
 
@@ -3075,7 +2886,7 @@
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete pursuit </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
                 methods: {
                     updatePursuit: function() {
                         fetch(`http://localhost:8000/api/pursuit/${this.pursuit.id}`, {
@@ -3140,7 +2951,7 @@
             Vue.component('cardioexercise', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div v-if="!deleted" class="cardioType-item">
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
                         <span v-if="showOptions">▴</span>
                         <span v-else>✎</span>
@@ -3150,14 +2961,14 @@
                         <span class="cardioType-name">[{ entry.name }] </span>
                     </span>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Name: <input v-model="entry.name" v-on:blur="updateEntry" /> </label>
 
                         <div class="details-buttons"> 
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete cardio exercise </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
             });
             cardioexerciseComponent = Vue.component('cardioexercise-page', {
                 mixins: [entryHandlingPageMixin],
@@ -3190,7 +3001,7 @@
             Vue.component('weightexercise', {
                 mixins: [entryHandlingItemMixin],
                 template: 
-                `<div v-if="!deleted" class="weightType-item">
+                `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
                         <span v-if="showOptions">▴</span>
                         <span v-else>✎</span>
@@ -3200,14 +3011,14 @@
                         <span class="weightType-name">[{ entry.name }] </span>
                     </span>
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
+                    <template slot="details-section">
                         <label>Name: <input v-model="entry.name" v-on:blur="updateEntry" /> </label>
 
                         <div class="details-buttons"> 
                             <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete weight exercise </div>
                         </div>
                     </div>
-                </div>`,
+                </entry-item>`,
             });
             weightexerciseComponent = Vue.component('weightexercise-page', {
                 mixins: [entryHandlingPageMixin],

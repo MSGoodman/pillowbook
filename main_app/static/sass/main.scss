@@ -250,7 +250,7 @@ label {
 }
 
 .invisible {
-    visibility: none;
+    display: none;
 }
 
 .details-dropdown {
@@ -375,12 +375,9 @@ h2 {
     padding-top: 5px;
 }
 
-.art-review {
+.review-text {
     font-size: 0.8em;
-    margin-top: 5px;
-    margin-left: 40px;
     white-space: pre-wrap;
-    padding: 10px;
 }
 .quiz * {
     padding: 10px;
@@ -602,4 +599,15 @@ h2 {
     visibility: hidden;
     opacity: 0;
     transition: visibility 0s 1s, opacity 1s linear;
+}
+
+.dropdown-visible {
+    opacity: 1;
+    height: auto;
+}
+.dropdown-hidden {
+    transition: opacity 1s ease-out;
+    opacity: 0; 
+    height: 0;
+    overflow: hidden;
 }
