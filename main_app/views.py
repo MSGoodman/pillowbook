@@ -22,6 +22,8 @@ def app_activate(request, key):
 
     try:
         user = User.objects.get(activation_key=key)
+        print(key)
+        print(user)
     except User.DoesNotExist:
         return render(request, 'activation_page.html', {'error': 'Invalid activation key.'})
 
@@ -115,33 +117,36 @@ def app_signup(request):
         pass1 = request.POST['password1']
         pass2 = request.POST['password2']
 
+        # If the user already exists, return error message
         try:
             user = User.objects.get(email=email)
             if user:
                 return render(request, 'signup.html', {'error': 'User already exists' })
         except User.DoesNotExist:
             pass
-            
-        if pass1 == pass2:
-            # Make User
-            activation_key = generate_activation_key(email)
-            key_expires = datetime.strftime(datetime.utcnow() + timedelta(days=2), "%Y-%m-%d %H:%M:%S")
+        
+        # If passwords don't match, return error message
+        if pass1 != pass2:
+            return render(request, 'signup.html', {'error': "Passwords didn't match"}) 
+    
+        # Make User
+        activation_key = generate_activation_key(email)
+        key_expires = datetime.strftime(datetime.utcnow() + timedelta(days=2), "%Y-%m-%d %H:%M:%S")
+        new_user = User.objects.create_user(email, pass1,activation_key=activation_key,is_active=False,key_expires=key_expires)
 
-            new_user = User.objects.create_user(email, pass1,activation_key=activation_key,is_active=False,key_expires=key_expires)
-            # Make Module Buttons
-            make_new_user_module_buttons(new_user)
-        else:
-            return render(request, 'signup.html', {'error': "Passwords didn't match"})
-
+        # If the user fails to be created, return error message
         if new_user is None:
             return render(request, 'signup.html', {'error': 'User could not be created' })
+        # Otherwise, create user objects and send verification email
         else:
+            activation_url='https://www.pillow-book.com/activate/{}'.format(activation_key)
+            make_new_user_module_buttons(new_user)
             send_mail(
-                subject='Hello from SparkPost',
-                message='Woo hoo! Sent from Django!',
+                subject='Thank you for signing up for Pillow-Book!',
+                message="You're just about ready to get started! Please click on the following link to verify your account: {0}".format(activation_url),
                 from_email='accounts@pillow-book.com',
                 recipient_list=[email],
-                html_message='<p>Hello Rock stars!</p>',
+                html_message='<h1 style="text-align:center;font-family:Roboto, Arial, sans-serif"><img src="https://www.pillow-book.com/static/placeholder-icon.png" style="height: 2em" /> PillowBook</h1><p>You\'re just about ready to get started! <a href="{0}">Please click on this link</a> to verify your account.</p> <p><a href="{0}">{0}</a></p>'.format(activation_url),
             )
             return HttpResponseRedirect('/')
 
