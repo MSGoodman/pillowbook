@@ -6,7 +6,7 @@ from datetime import timedelta, datetime
 from django.utils import timezone
 from django.db.models import Sum, Avg
 from django.contrib.auth import authenticate, login, logout
-from custom_user.forms import EmailUserCreationForm
+from django.core.mail import send_mail
 from django.http import JsonResponse, Http404
 
 import hashlib
@@ -15,7 +15,6 @@ from django.utils.crypto import get_random_string
 from django.core import serializers
 
 from .models import *
-from .local import *
 
 def app_activate(request, key):
     activation_expired = False
@@ -113,6 +112,13 @@ def app_signup(request):
         pass1 = request.POST['password1']
         pass2 = request.POST['password2']
 
+        try:
+            user = User.objects.get(email=email)
+            if user:
+                return render(request, 'signup.html', {'error': 'User already exists' })
+        except User.DoesNotExist:
+            pass
+            
         if pass1 == pass2:
             # Make User
             activation_key = generate_activation_key(email)
@@ -127,7 +133,13 @@ def app_signup(request):
         if new_user is None:
             return render(request, 'signup.html', {'error': 'User could not be created' })
         else:
-            login(request, new_user)
+            send_mail(
+                subject='Hello from SparkPost',
+                message='Woo hoo! Sent from Django!',
+                from_email='accounts@pillow-book.com',
+                recipient_list=[email],
+                html_message='<p>Hello Rock stars!</p>',
+            )
             return HttpResponseRedirect('/')
 
     else:

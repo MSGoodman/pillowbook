@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+from .local_settings import *
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,7 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '^i)pja=c^a_qiczcmcno*#t*+nvhvn!q3lwi&+!@rd@cw6u&3g'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '142.93.14.88', 'www.pillowbook.app', 'www.pillow-book.com']
 
@@ -155,3 +156,7 @@ STATICFILES_FINDERS = (
 	'django.contrib.staticfiles.finders.FileSystemFinder',
 	'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 	)
+
+# Email
+SPARKPOST_API_KEY = SPARKPOST_KEY
+EMAIL_BACKEND = 'sparkpost.django.email_backend.SparkPostEmailBackend'
