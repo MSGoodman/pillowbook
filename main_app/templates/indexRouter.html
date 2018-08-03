@@ -46,7 +46,7 @@
 <body>
     <script>
         const myAxios = axios.create({
-            baseURL: 'http://localhost:8000/api/', //'https://www.pillow-book.com/api/', //'http://localhost:8000/api/', 
+            baseURL: 'https://www.pillow-book.com/api/', //'http://localhost:8000/api/', 
             timeout: 1000,
             headers: {
                 'X-CSRFToken': Cookies.get('csrftoken')
@@ -202,7 +202,8 @@
                     },
                     toggleDropdown: function(event) {
                         var detailsDropdown = $(event.target).parents('.entry-item').children('.details-dropdown').first(); 
-                        detailsDropdown.slideToggle()
+                        detailsDropdown.slideToggle();
+                        this.showOptions = !this.showOptions;
                     }
                 },
                 template:
@@ -224,6 +225,11 @@
 
                         <div class="details-buttons"> 
                             <slot name="details-buttons-section"></slot>
+                                
+                            <div class="details-buttons"> 
+                                <div class="clickable details-button" @click="deleteThisEntry"> ❌ Delete Entry </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -314,10 +320,9 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         
-                        <div class="overview-name item-body-element"> 
+                        <div class="item-body-element"> 
                             [{ entry.highlights }] 
                             <span class="item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5"  inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
@@ -333,10 +338,6 @@
                         <label>Hightlights: <input type="text" v-model="entry.highlights" @blur="updateEntry" @input="inputChanged()" /> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
                         <label>Description: <textarea v-model="entry.description" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
-
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Overview </div>
-                        </div>
 
                     </template>
 
@@ -375,24 +376,21 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         
                         <div class="item-body-element">
                             <b> [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] </b> ( [{ sleepDuration }] )
                         </div>
                         
-                    </div>
+                    </template>
 
                     <template slot="details-section">
                         
-                        <label>Time Started: <input type="time" v-model="entry.start_time" /> </label>
-                        <label>Time Ended: <input type="time" v-model="entry.end_time" /> </label>
+                        <label>Time Started: <input type="time" v-model="entry.start_time" @blur="updateEntry" @input="inputChanged()" /> </label>
+                        <label>Time Ended: <input type="time" v-model="entry.end_time" @blur="updateEntry" @input="inputChanged()" /> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Sleep </div>
-                        </div>
-                    </div>
+                    </template>
+
                 </entry-item>`,
                 computed: {
                     sleepDuration: function(){
@@ -434,7 +432,6 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         <span class="weight-start item-top-detail"> [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] </span>
                         <span class="weight-weight item-top-detail"> [{ entry.weight }] lbs </span>
@@ -443,12 +440,12 @@
                     </div>
 
                     <template slot="details-section">
-                        <label>Weight: <input type="number" v-model="entry.weight" v-on:blur="updateEntry"/> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Workout </div>
-                        </div>
+                        <label>Weight: <input type="number" v-model="entry.weight" @blur="updateEntry" @input="inputChanged()" /> </label>
+
+                        
                     </div>
+
                 </entry-item>`,
                 methods: {
                     getWeightTypeName: function(id){
@@ -510,20 +507,19 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         <span class="cardio-start item-top-detail"> [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] </span>
                         <span class="cardio-cardio item-top-detail"> [{ entry.calories_burned }] Cals </span>
                         <div class="cardio-type item-body-element"> [{ getCardioTypeName(entry.type) }] </div>
-                    </div>
+                    </template>
 
                     <template slot="details-section">
-                        <label>Cardio: <input type="number" v-model="entry.cardio" /> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Workout </div>
-                        </div>
-                    </div>
+                        <label>Cardio: <input type="number" v-model="entry.cardio" @blur="updateEntry" @input="inputChanged()" /> </label>
+
+                        
+                        
+                    </template>
                 </entry-item>`,
                 methods: {
                     getCardioTypeName: function(id){
@@ -581,27 +577,23 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         
                         <div class="item-body-element">
                             <b> [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] </b> 
                             <div> <b> Bristol: </b> <img v-bind:src="bristolImageSrc" v-if="entry.bristol < 8 && entry.bristol > 0 " class="bristol-image" /> </div>
-                            
                         </div>
                         
-                    </div>
+                    </template>
 
                     <template slot="details-section">
                         
-                        <label>Time Started: <input type="time" v-model="entry.start_time" /> </label>
-                        <label>Time Ended: <input type="time" v-model="entry.end_time" /> </label>
-                        <label>Bristol: <input type="number" v-model="entry.bristol" min="1" max="7" /> </label>
+                        <label>Time Started: <input type="time" v-model="entry.start_time" @blur="updateEntry" @input="inputChanged()"  /> </label>
+                        <label>Time Ended: <input type="time" v-model="entry.end_time" @blur="updateEntry" @input="inputChanged()"  /> </label>
+                        <label>Bristol: <input type="number" v-model="entry.bristol" min="1" max="7" @blur="updateEntry" @input="inputChanged()" /> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Toilet </div>
-                        </div>
-                    </div>
+                    </template>
+
                 </entry-item>`,
                 computed: {
                     bristolImageSrc: function() {
@@ -651,21 +643,17 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         
-                        <div class="sex-name item-body-element"> [{ entry.type }] 
-                        </div>
+                        <div class="sex-name item-body-element"> [{ entry.type }] </div>
 
-                    </div>
+                    </template>
 
                     <template slot="details-section">
-                        <label>Type: <input type="text" v-model="entry.type" v-on:blur="updateEntry"/> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Sex </div>
-                        </div>
-                    </div>
+                        <label>Type: <input type="text" v-model="entry.type" @blur="updateEntry" @input="inputChanged()" /> </label>
+
+                    </template>
                 </entry-item>`,
             });
             sexComponent = Vue.component('sex-page', {
@@ -700,14 +688,13 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         
                         <div class="period-name item-body-element"> 
-                            <label>Period: <input type="checkbox" v-model="entry.period" v-on:change="updateEntry"> </label>
+                            <label>Period: <input type="checkbox" v-model="entry.period" @blur="updateEntry" @input="inputChanged()"> </label>
                         </div>
 
-                    </div>
+                    </template>
 
                 </entry-item>`,
             });
@@ -744,7 +731,6 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         
                         <div class="learning-name item-body-element"> <strong>[{ entry.summary }]</strong>
@@ -752,16 +738,14 @@
                         
                         <div class="learning-review review-text">[{ entry.details }]</div>
 
-                    </div>
+                    </template>
 
                     <template slot="details-section">
-                        <label>Summary: <input type="text" v-model="entry.summary" v-on:blur="updateEntry"/> </label>
-                        <label>Review: <textarea v-model="entry.details" v-on:blur="updateEntry" @keydown.tab="textAreaTab"> </textarea></label>
+                        <label>Summary: <input type="text" v-model="entry.summary" @blur="updateEntry" @input="inputChanged()" /> </label>
+                        <label>Review: <textarea v-model="entry.details" @blur="updateEntry" @input="inputChanged()" @keydown.tab="textAreaTab"> </textarea></label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Learning </div>
-                        </div>
-                    </div>
+                    </template>
+
                 </entry-item>`,
                 methods: {
                     updateLearning: function() {
@@ -839,26 +823,23 @@
                 mixins: [entryHandlingItemMixin],
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions" style="display:inline-block">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
-                    
+
                     <template slot="display-section">
+
                         <span class="money-amount" v-bind:class="[{negamoney: entry.amount > 0}]"> <b> $[{ entry.amount }] </b> </span>
                         <span class="money-name">[{ entry.name }] </span>
                         <span class="money-category item-top-detail" >[{ entry.category }] </span>
-                    </div>
+
+                    </template>
 
                     <template slot="details-section">
-                        <label>Name:  <input v-model="entry.name" v-on:blur="updateEntry"/>  </label>
-                        <label>Amount: <input type="number" min="0.01" step="0.01" v-model="entry.amount" v-on:blur="updateEntry" /> </label>
-                        <label>Category: <input v-model="entry.category" v-on:blur="updateEntry"/> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Money </div>
-                        </div>
-                    </div>
+                        <label>Name:  <input v-model="entry.name" @blur="updateEntry" @input="inputChanged()"/>  </label>
+                        <label>Amount: <input type="number" min="0.01" step="0.01" v-model="entry.amount" @blur="updateEntry" @input="inputChanged()" /> </label>
+                        <label>Category: <input v-model="entry.category" @blur="updateEntry" @input="inputChanged()"/> </label>
+
+                    </template>
+
                 </entry-item>`,
             });
             moneyComponent = Vue.component('money-page', {
@@ -896,25 +877,25 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
+
                         <div class="study-type item-body-element"><b>[{ getQuiz(entry.quiz).name }]</b> [{entry.correct_records}] / [{ getQuiz(entry.quiz).total_records }] ([{correctPercent}]%) </div>
-                    </div>
+
+                    </template>
 
                     <template slot="details-section">
+
                         <label> Quiz: 
-                            <select v-model="entry.quiz">
+                            <select v-model="entry.quiz" >
                                 <option v-for="quiz in quizzes" :value="quiz.id">
                                     [{ quiz.name }]
                                 </option>
                             </select>
                         </label>
-                        <label>Correct Records: <input type="number" v-model="entry.correct_records" /> </label>
+                        <label>Correct Records: <input type="number" v-model="entry.correct_records" @blur="updateEntry" @input="inputChanged()" /> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Workout </div>
-                        </div>
-                    </div>
+                    </template>
+
                 </entry-item>`,
                 methods: {
                     getQuiz: function(id){
@@ -1503,23 +1484,25 @@
                             [{ entry.title }] 
                             <span class="literature-type item-top-detail"> [{ entry.type }] </span>
                             <span class="literature-title item-top-detail"> [{ entry.author }] </span>
-                            <span class="literature-title item-top-detail"> <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="15" :increment="0.5" 
+                            <span class="literature-title item-top-detail"> <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="15" :increment="0.5" 
                                 inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
                         <div class="literature-review review-text">
                                 [{ entry.review }] 
                         </div>
+
                     </template>
                     
                     <template slot="details-section">
-                        <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry" @input="inputChanged()" /> </label>
-                        <label>Up To Page: <input type="number" v-model="entry.up_to_page" v-on:blur="updateEntry"/> </label>
-                        <label>Type: <input type="text" v-model="entry.type" v-on:blur="updateEntry"/> </label>
-                        <label>Author: <input type="text" v-model="entry.author" v-on:blur="updateEntry"/> </label>
-                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
+
+                        <label>Title: <input type="text" v-model="entry.title" @blur="updateEntry" @input="inputChanged()"  /> </label>
+                        <label>Up To Page: <input type="number" v-model="entry.up_to_page" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Type: <input type="text" v-model="entry.type" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Author: <input type="text" v-model="entry.author" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+
                     </template>
                         
                 </entry-item>
@@ -1563,7 +1546,6 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         
                         <div class="film-title item-body-element"> [{ entry.title }] 
@@ -1576,19 +1558,17 @@
                                 [{ entry.review }] 
                         </div>
 
-                    </div>
+                    </template>
 
                     <template slot="details-section">
-                        <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
-                        <label>Director: <input type="text" v-model="entry.director" v-on:blur="updateEntry"/> </label>
-                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Film </div>
-                        </div>
-                    </div>
+                        <label>Title: <input type="text" v-model="entry.title" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Director: <input type="text" v-model="entry.director" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+
+                    </template>
+
                 </entry-item>`,
             });
             filmComponent = Vue.component('film-page', {
@@ -1629,7 +1609,6 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         
                         <div class="television-series item-body-element"> [{ entry.series }] 
@@ -1642,19 +1621,18 @@
                                 [{ entry.review }] 
                         </div>
 
-                    </div>
+                    </template>
 
                     <template slot="details-section">
-                        <label>Series: <input type="text" v-model="entry.series" v-on:blur="updateEntry"/> </label>
-                        <label>Episode: <input type="text" v-model="entry.episode" v-on:blur="updateEntry"/> </label>
-                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Television </div>
-                        </div>
-                    </div>
+                        <label>Series: <input type="text" v-model="entry.series" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Episode: <input type="text" v-model="entry.episode" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+
+                    </template>
+
                 </entry-item>`,
             });
             televisionComponent = Vue.component('television-page', {
@@ -1693,7 +1671,6 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         
                         <div class="boardgame-title item-body-element"> [{ entry.title }] 
@@ -1706,19 +1683,17 @@
                                 [{ entry.review }] 
                         </div>
 
-                    </div>
+                    </template>
 
                     <template slot="details-section">
-                        <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
-                        <label>Creator: <input type="text" v-model="entry.creator" v-on:blur="updateEntry"/> </label>
-                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete BoardGame </div>
-                        </div>
-                    </div>
+                        <label>Title: <input type="text" v-model="entry.title" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Creator: <input type="text" v-model="entry.creator" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+
+                    </template>
+
                 </entry-item>`,
             });
             bgComponent = Vue.component('boardgame-page', {
@@ -1758,34 +1733,31 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         
-                        <div class="videogame-title item-body-element"> [{ entry.title }] 
-                        <span class="videogame-console item-top-detail"> [{ entry.console }] </span>
-                        <span class="videogame-title item-top-detail"> [{ entry.developer }] </span>
-                        <span class="videogame-title item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                        <div class="videogame-title item-body-element"> 
+                            [{ entry.title }] 
+                            <span class="videogame-console item-top-detail"> [{ entry.console }] </span>
+                            <span class="videogame-title item-top-detail"> [{ entry.developer }] </span>
+                            <span class="videogame-title item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
                         <div class="videogame-review review-text">
-                                [{ entry.review }] 
+                            [{ entry.review }] 
                         </div>
 
-                    </div>
+                    </template>
 
                     <template slot="details-section">
-                        <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
-                        <label>Console: <input type="text" v-model="entry.console" v-on:blur="updateEntry"/> </label>
-                        <label>Developer: <input type="text" v-model="entry.developer" v-on:blur="updateEntry"/> </label>
-                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete VideoGame </div>
-                        </div>
-                    </div>
+                        <label>Title: <input type="text" v-model="entry.title" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Console: <input type="text" v-model="entry.console" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Developer: <input type="text" v-model="entry.developer" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+
+                    </template>
+
                 </entry-item>`,
             });
             vgComponent = Vue.component('videogame-page', {
@@ -1810,8 +1782,7 @@
                             <label>Title: <input type="text" v-model="newEntry.title" /> </label>
                             <label>Console: <input type="text" v-model="newEntry.console"/> </label>
                             <label>Developer: <input type="text" v-model="newEntry.developer"/> </label>
-                            <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
-                                inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                            <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
                             <label>Review: <textarea v-model="newEntry.review" /> </textarea> </label>
 
                         </new-entry-form>
@@ -1831,27 +1802,24 @@
                         
                         <div class="music-title item-body-element"> [{ entry.title }] 
                         <span class="music-title item-top-detail"> [{ entry.artist }] </span>
-                        <span class="music-title item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
+                        <span class="music-title item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
                         <div class="music-review review-text">
-                                [{ entry.review }] 
+                            [{ entry.review }] 
                         </div>
 
-                    </div>
+                    </template>
 
                     <template slot="details-section">
-                        <label>Title: <input type="text" v-model="entry.title" v-on:blur="updateEntry"/> </label>
-                        <label>Artist: <input type="text" v-model="entry.artist" v-on:blur="updateEntry"/> </label>
-                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Music </div>
-                        </div>
-                    </div>
+                        <label>Title: <input type="text" v-model="entry.title" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Artist: <input type="text" v-model="entry.artist" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+
+                    </template>
+                    
                 </entry-item>`,
             });
             musicComponent = Vue.component('music-page', {
@@ -1903,19 +1871,18 @@
                                 [{ entry.review }] 
                         </div>
 
-                    </div>
+                    </template>
 
                     <template slot="details-section">
-                        <label>Series: <input type="text" v-model="entry.series" v-on:blur="updateEntry"/> </label>
-                        <label>Episode: <input type="text" v-model="entry.episode" v-on:blur="updateEntry"/> </label>
-                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Podcast </div>
-                        </div>
-                    </div>
+                        <label>Series: <input type="text" v-model="entry.series" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Episode: <input type="text" v-model="entry.episode" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+
+                    </template>
+
                 </entry-item>`,
             });
             podcastComponent = Vue.component('podcast-page', {
@@ -1954,7 +1921,6 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         
                         <div class="beer-name item-body-element"> [{ entry.name }] 
@@ -1967,19 +1933,18 @@
                                 [{ entry.review }] 
                         </div>
 
-                    </div>
+                    </template>
 
                     <template slot="details-section">
-                        <label>Name: <input type="text" v-model="entry.name" v-on:blur="updateEntry"/> </label>
-                        <label>Brewery: <input type="text" v-model="entry.brewery" v-on:blur="updateEntry"/> </label>
-                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Beer </div>
-                        </div>
-                    </div>
+                        <label>Name: <input type="text" v-model="entry.name" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Brewery: <input type="text" v-model="entry.brewery" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" 
+                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+
+                    </template>
+
                 </entry-item>`,
             });
             beerComponent = Vue.component('beer-page', {
@@ -2018,12 +1983,11 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         
                         <div class="wine-name item-body-element"> [{ entry.name }] 
                         <span class="wine-name item-top-detail"> [{ entry.vineyard }] </span>
-                        <span class="wine-name item-top-detail"> <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="15" :increment="0.5" 
+                        <span class="wine-name item-top-detail"> <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="15" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
@@ -2031,19 +1995,17 @@
                                 [{ entry.review }] 
                         </div>
 
-                    </div>
+                    </template>
 
                     <template slot="details-section">
-                        <label>Name: <input type="text" v-model="entry.name" v-on:blur="updateEntry"/> </label>
-                        <label>Vineyard: <input type="text" v-model="entry.vineyard" v-on:blur="updateEntry"/> </label>
-                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Wine </div>
-                        </div>
-                    </div>
+                        <label>Name: <input type="text" v-model="entry.name" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Vineyard: <input type="text" v-model="entry.vineyard" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+
+                    </template>
+
                 </entry-item>`,
             });
             wineComponent = Vue.component('wine-page', {
@@ -2082,7 +2044,6 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         
                         <div class="cheese-name item-body-element"> [{ entry.name }] 
@@ -2094,19 +2055,17 @@
                                 [{ entry.review }] 
                         </div>
 
-                    </div>
+                    </template>
 
                     <template slot="details-section">
-                        <label>Name: <input type="text" v-model="entry.name" v-on:blur="updateEntry"/> </label>
-                        <label>Vineyard: <input type="text" v-model="entry.vineyard" v-on:blur="updateEntry"/> </label>
-                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
-                            inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Cheese </div>
-                        </div>
-                    </div>
+                        <label>Name: <input type="text" v-model="entry.name" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Vineyard: <input type="text" v-model="entry.vineyard" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
+                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+
+                    </template>
+
                 </entry-item>`,
             });
             cheeseComponent = Vue.component('cheese-page', {
@@ -2144,24 +2103,23 @@
                 template: 
                 `
                 <entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
-                    
-                    <span >
-                        <span> [{ entry.title }] </span>
-                        <span>[{ entry.director }] </span>
-                    </span>
+
+                    <template slot="display-section">
+
+                        <span >
+                            <span> [{ entry.title }] </span>
+                            <span>[{ entry.director }] </span>
+                        </span>
+
+                    </template>
 
                     <template slot="details-section">
-                        <label> Title:  <input v-model="entry.title" v-on:blur="updateEntry"/>  </label>
-                        <label> Director: <input v-model="entry.director" v-on:blur="updateEntry" /> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete FilmWish </div>
-                        </div>
-                    </div>
+                        <label> Title:  <input v-model="entry.title" @blur="updateEntry" @input="inputChanged()"/>  </label>
+                        <label> Director: <input v-model="entry.director" @blur="updateEntry" @input="inputChanged()" /> </label>
+
+                    </template>
+
                 </div>
                 
                 `,
@@ -2199,24 +2157,22 @@
                 template: 
                 `
                 <entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
                     
-                    <span >
-                        <span> [{ entry.title }] </span>
-                        <span>[{ entry.creator }] </span>
-                    </span>
+                    <template slot="display-section">
+
+                        <span >
+                            <span> [{ entry.title }] </span>
+                            <span>[{ entry.creator }] </span>
+                        </span>
+                    
+                    </template>
 
                     <template slot="details-section">
-                        <label> Title:  <input v-model="entry.title" v-on:blur="updateEntry"/>  </label>
-                        <label> Creator: <input v-model="entry.creator" v-on:blur="updateEntry" /> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete BoardGameWish </div>
-                        </div>
-                    </div>
+                        <label> Title:  <input v-model="entry.title" @blur="updateEntry" @input="inputChanged()"/>  </label>
+                        <label> Creator: <input v-model="entry.creator" @blur="updateEntry" @input="inputChanged()" /> </label>
+
+                    </template>
                 </div>
                 
                 `,
@@ -2254,24 +2210,23 @@
                 template: 
                 `
                 <entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
                     
-                    <span >
-                        <span> [{ entry.title }] </span>
-                        <span>[{ entry.author }] </span>
-                    </span>
+                    <template slot="display-section">
+
+                        <span >
+                            <span> [{ entry.title }] </span>
+                            <span>[{ entry.author }] </span>
+                        </span>
+
+                    </template>
 
                     <template slot="details-section">
-                        <label> Title:  <input v-model="entry.title" v-on:blur="updateEntry"/>  </label>
-                        <label> Author: <input v-model="entry.author" v-on:blur="updateEntry" /> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete LiteratureWish </div>
-                        </div>
-                    </div>
+                        <label> Title:  <input v-model="entry.title" @blur="updateEntry" @input="inputChanged()"/>  </label>
+                        <label> Author: <input v-model="entry.author" @blur="updateEntry" @input="inputChanged()" /> </label>
+
+                    </template>
+
                 </div>
                 
                 `,
@@ -2310,8 +2265,8 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
+
                         <div class="cooking-name item-body-element"> [{ getRecipeFromLoaded(entry.recipe).name }] 
                         <span class="cooking-name item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
@@ -2321,24 +2276,23 @@
                                 [{ entry.review }] 
                         </div>
 
-                    </div>
+                    </template>
 
                     <template slot="details-section">
+
                         <label> Recipe: 
-                            <select v-model="entry.recipe" v-on:change="updateEntry">
+                            <select v-model="entry.recipe" @change="inputChanged(); updateEntry();">
                                 <option v-for="recipe in recipes" :value="recipe.id">
                                     [{ recipe.name }]
                                 </option>
                             </select>
                         </label>
-                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" v-on:rating-selected="updateEntry" :star-size="25" :increment="0.5" 
+                        <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" v-on:blur="updateEntry"> </textarea></label>
+                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Cooking </div>
-                        </div>
-                    </div>
+                    </template>
+
                 </entry-item>`,
                 methods: {getRecipeFromLoaded: function(id){ return this.recipes.find(p => p.id === id); }, }
             });
@@ -2388,8 +2342,8 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
+
                         <span class="item-3-col"> <b> [{ (entry.price_per_unit - entry.discount_per_unit) * entry.qty | toCurrency}] </b> </span>
                         <span class="item-3-col"> 
                             <b> [{ entry.qty }]</b>
@@ -2398,29 +2352,29 @@
                             [{ getFoodItemFromLoaded(entry.food_item).serving_size_unit }])
                         </span>
                         <span class="item-top-detail"> [{ entry.store }] </span>
-                    </div>
+
+                    </template>
 
                     <template slot="details-section">
+
                         <label> Item: 
-                            <select v-model="entry.food_item" v-on:change="updateEntry">
+                            <select v-model="entry.food_item" @change="inputChanged(); updateEntry();">
                                 <option v-for="fooditem in fooditems" :value="fooditem.id">
                                     [{ fooditem.name }]
                                 </option>
                             </select>
                         </label>
                         
-                        <label>Servings per Unit: <input v-model="entry.serving_count" v-on:change="updateEntry" /> </label>
-                        <label>Unit Price: <input v-model="entry.price_per_unit" v-on:change="updateEntry"/> </label>
-                        <label>Unit Discount: <input v-model="entry.discount_per_unit" v-on:change="updateEntry" /> </label>
-                        <label>Unit Quantity: <input v-model="entry.qty" v-on:change="updateEntry" /> </label>
+                        <label>Servings per Unit: <input v-model="entry.serving_count" @blur="updateEntry" @input="inputChanged()" /> </label>
+                        <label>Unit Price: <input v-model="entry.price_per_unit" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Unit Discount: <input v-model="entry.discount_per_unit" @blur="updateEntry" @input="inputChanged()" /> </label>
+                        <label>Unit Quantity: <input v-model="entry.qty" @blur="updateEntry" @input="inputChanged()" /> </label>
                         <br>
-                        <label>Store: <input v-model="entry.store" v-on:change="updateEntry" /> </label>
-                        <label>Receipt Name: <input v-model="entry.receipt_name" v-on:change="updateEntry" /> </label>
+                        <label>Store: <input v-model="entry.store" @blur="updateEntry" @input="inputChanged()" /> </label>
+                        <label>Receipt Name: <input v-model="entry.receipt_name" @blur="updateEntry" @input="inputChanged()" /> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete GroceryPurchase </div>
-                        </div>
-                    </div>
+                    </template>
+
                 </entry-item>`,
                 methods: { getFoodItemFromLoaded: function(id){ return this.fooditems.find(p => p.id === id); },
                 }
@@ -2490,8 +2444,8 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
+
                         <span class="item-top-detail">⏰ [{ entry.eat_time | formatTime }] </span>
                         <span class="item-top-detail">[{ entry.calories }] Cal</span>
                         <span class="item-top-detail">$[{ entry.cost }] </span>
@@ -2503,17 +2457,17 @@
                                 <li v-for="recipe in entry.recipes"> [{ getRecipeFromLoaded(recipe).name }] </li>
                             </ul>
                         </div>
-                    </div>
+
+                    </template>
 
                     <template slot="details-section">
+
                         <label>Cost: <input type="number" min="0.01" step="0.01" v-model="entry.cost" /> </label>
                         <label>Time Ate: <input type="time" v-model="entry.eat_time" /> </label>
                         <label>Location: <input v-model="entry.location" /> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Meal </div>
-                        </div>
-                    </div>
+                    </template>
+
                 </entry-item>`,
                 methods: {
                     getFoodItemFromLoaded: function(id){
@@ -2622,27 +2576,25 @@
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
-                    
                     <template slot="display-section">
                         
                         <div class="travel-name item-body-element"> [{ entry.name }] 
-                        <span class="travel-type item-top-detail"> [{ entry.location_type }] </span>
-                        <span class="travel-lat item-top-detail"> [{ entry.latitude }] </span>
-                        <span class="travel-long item-top-detail"> [{ entry.longitude }] </span>
+                            <span class="travel-type item-top-detail"> [{ entry.location_type }] </span>
+                            <span class="travel-lat item-top-detail"> [{ entry.latitude }] </span>
+                            <span class="travel-long item-top-detail"> [{ entry.longitude }] </span>
                         </div>
 
-                    </div>
+                    </template>
 
                     <template slot="details-section">
-                        <label>Name: <input type="text" v-model="entry.name" v-on:blur="updateEntry"/> </label>
-                        <label>Location Type: <input type="text" v-model="entry.location_type" v-on:blur="updateEntry"/> </label>
-                        <label>Latitude: <input type="text" v-model="entry.latitude" v-on:blur="updateEntry"/> </label>
-                        <label>Longitude: <input type="text" v-model="entry.longitude" v-on:blur="updateEntry"/> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete Travel </div>
-                        </div>
-                    </div>
+                        <label>Name: <input type="text" v-model="entry.name" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Location Type: <input type="text" v-model="entry.location_type" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Latitude: <input type="text" v-model="entry.latitude" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Longitude: <input type="text" v-model="entry.longitude" @blur="updateEntry" @input="inputChanged()"/> </label>
+
+                    </template>
+
                 </entry-item>`,
             });
             travelComponent = Vue.component('travel-page', {
@@ -2868,24 +2820,23 @@
                 mixins: [entryHandlingItemMixin],
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
                     
-                    <span class="pursuit-info">
-                        <span class="pursuit-icon"> [{ entry.icon }] </span>
-                        <span class="pursuit-name">[{ entry.name }] </span>
-                    </span>
+                    <template slot="display-section">
+
+                        <span class="pursuit-info">
+                            <span class="pursuit-icon"> [{ entry.icon }] </span>
+                            <span class="pursuit-name">[{ entry.name }] </span>
+                        </span>
+
+                    </template>
 
                     <template slot="details-section">
-                        <label> Icon:  <input v-model="entry.icon" v-on:blur="updateEntry"/>  </label>
-                        <label>Name: <input v-model="entry.name" v-on:blur="updateEntry" /> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete pursuit </div>
-                        </div>
-                    </div>
+                        <label> Icon:  <input v-model="entry.icon" @blur="updateEntry" @input="inputChanged()"/>  </label>
+                        <label>Name: <input v-model="entry.name" @blur="updateEntry" @input="inputChanged()" /> </label>
+
+                    </template>
+
                 </entry-item>`,
                 methods: {
                     updatePursuit: function() {
@@ -2952,22 +2903,21 @@
                 mixins: [entryHandlingItemMixin],
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
-                    
-                    <span class="cardioType-info">
-                        <span class="cardioType-name">[{ entry.name }] </span>
-                    </span>
+
+                    <template slot="display-section">
+
+                        <span class="cardioType-info">
+                            <span class="cardioType-name">[{ entry.name }] </span>
+                        </span>
+
+                    </template>
 
                     <template slot="details-section">
-                        <label>Name: <input v-model="entry.name" v-on:blur="updateEntry" /> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete cardio exercise </div>
-                        </div>
-                    </div>
+                        <label>Name: <input v-model="entry.name" @blur="updateEntry" @input="inputChanged()" /> </label>
+
+                    </template>
+
                 </entry-item>`,
             });
             cardioexerciseComponent = Vue.component('cardioexercise-page', {
@@ -3002,22 +2952,21 @@
                 mixins: [entryHandlingItemMixin],
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions"">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
                     
-                    <span class="weightType-info">
-                        <span class="weightType-name">[{ entry.name }] </span>
-                    </span>
+                    <template slot="display-section">
+
+                        <span class="weightType-info">
+                            <span class="weightType-name">[{ entry.name }] </span>
+                        </span>
+
+                    </template>
 
                     <template slot="details-section">
-                        <label>Name: <input v-model="entry.name" v-on:blur="updateEntry" /> </label>
 
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="deleteEntry"> ❌ Delete weight exercise </div>
-                        </div>
-                    </div>
+                        <label>Name: <input v-model="entry.name" @blur="updateEntry" @input="inputChanged()" /> </label>
+
+                    </template>
+
                 </entry-item>`,
             });
             weightexerciseComponent = Vue.component('weightexercise-page', {
@@ -3127,7 +3076,6 @@
                         <div class="nutrition-label">
                             <h1> Nutrition Facts </h1>
                             <div> <b> Serving size </b> 
-                                <!--<input v-model="newEntry.serving_size" v-on:blur="updateEntry" class="wider-input" />-->
                                 <input placeholder="0" v-model="newEntry.serving_size_qty" class="input" />
                                 <input placeholder="grams" v-model="newEntry.serving_size_unit" class="wider-input" />
                             </div>
