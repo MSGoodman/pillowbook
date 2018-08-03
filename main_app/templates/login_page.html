@@ -49,9 +49,9 @@
                 <div class="form-card">
                     <div class="card-header">Sign In</div>
                     <form id="login" method="post" action="login">{% csrf_token %}
-                        <label for="email"> Email </label>
+                        <div class="signup-label"> <label for="email"> Email </label> </div>
                         <input type="text" id="email" name="email" placeholder="Email">
-                        <label for="password"> Password </label>
+                        <div class="signup-label"> <label for="password"> Password </label> </div>
                         <input type="password" id="password" name="password" placeholder="Password">
             
                         <button type="submit" form="login" value="Submit" class="btn btn-primary">Sign In</button> 

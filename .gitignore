@@ -7,4 +7,4 @@ db.sqlite3
 staticfiles/*
 main_app/local.py
 lifesheet/local_settings.py
-main_app/statuc/stylesheets/*
+main_app/static/stylesheets/*
