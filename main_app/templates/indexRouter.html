@@ -1411,7 +1411,7 @@
                                 inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
                         
-                        <div class="literature-review review-text">
+                        <div class="literature-review review-text" v-if="entry.review">
                                 [{ entry.review }] 
                         </div>
 
