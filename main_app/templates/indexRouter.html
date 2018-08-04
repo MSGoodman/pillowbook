@@ -36,6 +36,8 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <!-- vuejs-datepicker -->
+    <script src="https://unpkg.com/vuejs-datepicker"></script>
 
     <!-- My CSS -->
     <link rel="stylesheet" type="text/css" href="{% static 'stylesheets/main.css' %}">
@@ -46,7 +48,7 @@
 <body>
     <script>
         const myAxios = axios.create({
-            baseURL: 'https://www.pillow-book.com/api/', //'http://localhost:8000/api/', 
+            baseURL: 'https://www.pillow-book.com/api/', // 'http://localhost:8000/api/', //
             timeout: 1000,
             headers: {
                 'X-CSRFToken': Cookies.get('csrftoken')
@@ -121,7 +123,7 @@
                 delimiters: ["[{","}]"],
                 data: function() {
                     return {
-                        date: dateToString(new Date()),
+                        date: new Date(),
                         entries: [],
                         newEntry: {},
                         showNewEntry: false,
@@ -136,7 +138,7 @@
                 watch: {
                     date: function() {
                         if (this.date === '') { return }
-                        myAxios.get(this.endpoint + "/" + this.date).then(response => this.entries = convertRatings(response.data));
+                        myAxios.get(this.endpoint + "/" + dateToString(this.date)).then(response => this.entries = convertRatings(response.data));
                     }
                 },
                 methods: {
@@ -158,11 +160,13 @@
                         return disabled;
                     }
                 },
+                components: { vuejsDatepicker }
             }
             
             var optionsStore = {
                 state: {
                     tabIndent: false,
+                    tabIndentSpaces: 0,
                     disableDrag: false,
                 },
             }
@@ -308,8 +312,6 @@
                         </module-button>
                     </div>
                     
-                    
-                
                 </div>
                 `
             });
@@ -350,7 +352,8 @@
                 `
                 <div>
                     <h1>Overview</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="overview-list" class="object-list">
                         <overview-item v-for="item in sortedEntries"
@@ -406,7 +409,7 @@
                 `
                 <div>
                     <h1>Sleep</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="sleep-list" class="object-list">
                         <sleep-item v-for="item in sortedEntries"
@@ -468,7 +471,7 @@
                 `
                 <div>
                     <h1>Weight Workouts</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="weight-list" class="object-list">
                         <weight-item v-for="item in sortedEntries"
@@ -542,7 +545,7 @@
                 `
                 <div>
                     <h1>Cardio Workouts</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="cardio-list" class="object-list">
                         <cardio-item v-for="item in sortedEntries"
@@ -615,7 +618,7 @@
                 `
                 <div>
                     <h1>Bathroom</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="toilet-list" class="object-list">
                         <toilet-item v-for="item in sortedEntries"
@@ -663,7 +666,7 @@
                 `
                 <div>
                     <h1>Sex</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="sex-list" class="object-list">
                         <sex-item v-for="item in sortedEntries"
@@ -705,7 +708,7 @@
                 `
                 <div>
                     <h1>Period</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="period-list" class="object-list">
                         <period-item v-for="item in sortedEntries"
@@ -797,7 +800,7 @@
                 `
                 <div>
                     <h1>Learning</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="learning-list" class="object-list">
                         <learning-item v-for="item in sortedEntries"
@@ -849,7 +852,7 @@
                 `
                 <div>
                     <h1>Money</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="money-list" class="object-list">
                         <money-item v-for="item in sortedEntries"
@@ -937,7 +940,7 @@
                 `
                 <div>
                     <h1>Study</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="study-list" class="object-list">
                         <study-item v-for="item in sortedEntries"
@@ -1304,7 +1307,7 @@
                 `
                 <div>
                     <h1>To-Do</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
                     <label class="inline-label">Completed Tasks: </label>[{ completedTasks.length }]/[{ sortedTasks.length - canceledTasks.length }] ([{ completedPercent }]%)
                     <div id="filters">
                         <h2>Filters</h2>
@@ -1454,7 +1457,7 @@
                 `
                 <div>
                     <h1>Pursuit Progress</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="pursuit-list" class="object-list">
                         <pursuit-progress-item v-for="item in pursuits"
@@ -1515,7 +1518,7 @@
                 `
                 <div>
                     <h1>Literature</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="literature-list" class="object-list">
                         <literature-item v-for="item in sortedEntries"
@@ -1578,7 +1581,7 @@
                 `
                 <div>
                     <h1>Films</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="film-list" class="object-list">
                         <film-item v-for="item in sortedEntries"
@@ -1642,7 +1645,7 @@
                 `
                 <div>
                     <h1>Television</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="television-list" class="object-list">
                         <television-item v-for="item in sortedEntries"
@@ -1703,7 +1706,7 @@
                 `
                 <div>
                     <h1>Board Games</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="boardgame-list" class="object-list">
                         <boardgame-item v-for="item in sortedEntries"
@@ -1768,7 +1771,7 @@
                     <div id="videogame-page">
 
                         <h1>Video Games</h1>
-                        <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                        <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                         <div id="videogame-list" class="object-list">
                         <videogame-item v-for="item in sortedEntries"
@@ -1829,7 +1832,7 @@
                 `
                 <div>
                     <h1>Music</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="music-list" class="object-list">
                         <music-item v-for="item in sortedEntries"
@@ -1892,7 +1895,7 @@
                 `
                 <div>
                     <h1>Podcasts</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="podcast-list" class="object-list">
                         <podcast-item v-for="item in sortedEntries"
@@ -1954,7 +1957,7 @@
                 `
                 <div>
                     <h1>Beer</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="beer-list" class="object-list">
                         <beer-item v-for="item in sortedEntries"
@@ -2015,7 +2018,7 @@
                 `
                 <div>
                     <h1>Wine</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="wine-list" class="object-list">
                         <wine-item v-for="item in sortedEntries"
@@ -2075,7 +2078,7 @@
                 `
                 <div>
                     <h1>Cheese</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="cheese-list" class="object-list">
                         <cheese-item v-for="item in sortedEntries"
@@ -2305,7 +2308,7 @@
                 `
                 <div>
                     <h1>Cooking</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="cooking-list" class="object-list">
                         <cooking-item v-for="item in sortedEntries"
@@ -2401,7 +2404,7 @@
                 `
                 <div>
                     <h1>Groceries</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="grocerypurchase-list" class="object-list">
                         <grocerypurchase-item v-for="item in sortedEntries"
@@ -2514,7 +2517,7 @@
                 `
                 <div>
                     <h1>Meals</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="meal-list" class="object-list">
                         <meal-item v-for="item in sortedEntries"
@@ -2629,7 +2632,7 @@
                 `
                 <div id="travel-section">
                     <h1>Travel</h1>
-                    <label> Date: <input id="id_date" type="date" v-model="date" /> </label>
+                    <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
                     <div id="travel-list" class="object-list">
                         <travel-item v-for="item in sortedEntries"
@@ -3325,6 +3328,7 @@
 
             var app = new Vue({
                 el: '#app',
+                components: { vuejsDatepicker },
                 router: router,
                 delimiters: ["[{","}]"],
                 data: { options: optionsStore, },
@@ -3346,8 +3350,8 @@
                         if (this.$route.path === '/meal'){ sideButtons.push('fooditems'); sideButtons.push('recipes'); }
                         return sideButtons; 
                     },
-                    showDisableDrag: function() { return this.$route.path === "/todo"; }
-                }
+                    showDisableDrag: function() { return this.$route.path === "/todo"; },
+                },
                     
             }).$mount('#app');
             
@@ -3416,7 +3420,6 @@
                 </div>
 
             </nav>
-
 
             <div class="container-fluid">
                 <router-view></router-view>      

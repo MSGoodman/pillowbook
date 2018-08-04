@@ -173,6 +173,7 @@ a {
 label {
     display: block;
     font-weight: bold;
+    margin-bottom: 0;
 }
 
 #home-button {
@@ -610,4 +611,16 @@ h2 {
     opacity: 0; 
     height: 0;
     overflow: hidden;
+}
+
+.datepicker-wrapper {
+    text-align: center; 
+}
+
+.datepicker-calendar {
+    margin: 0 auto;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
 }
