@@ -133,7 +133,6 @@
                 mounted: function() {
                     if (this.noMixinMounted){ return }
                     myAxios.get(this.endpoint + "/" + dateToString(new Date())).then(response => this.entries = convertRatings(response.data));
-                    document.getElementById("id_date").valueAsDate = new Date();
                 },
                 watch: {
                     date: function() {
@@ -1226,11 +1225,10 @@
                     this.getToDoPursuits();
                     this.getProjects();
                     this.getToDosByDate(dateToString(new Date()));
-                    document.getElementById("id_date").valueAsDate = new Date();
                 },
                 watch: {
                     date: function() {
-                        this.getToDosByDate(this.date);
+                        this.getToDosByDate(dateToString(this.date));
                     }
                 },
                 methods: {
@@ -1303,6 +1301,7 @@
                         //console.log(prevToDo, thisToDo, nextToDo);
                     },
                 },
+                components: { vuejsDatepicker },
                 template: 
                 `
                 <div>
@@ -3328,7 +3327,6 @@
 
             var app = new Vue({
                 el: '#app',
-                components: { vuejsDatepicker },
                 router: router,
                 delimiters: ["[{","}]"],
                 data: { options: optionsStore, },
