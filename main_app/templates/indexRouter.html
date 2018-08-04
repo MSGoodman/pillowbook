@@ -138,11 +138,11 @@
                     date: function() {
                         if (this.date === '') { return }
                         myAxios.get(this.endpoint + "/" + dateToString(this.date)).then(response => this.entries = convertRatings(response.data));
-                    }
+                    },
                 },
                 methods: {
                     createNewEntry: function() {
-                        this.newEntry['date'] = this.date;
+                        this.newEntry['date'] = dateToString(this.date);
                         myAxios.post(this.endpoint, this.newEntry)
                             .then(response => {
                                 this.entries.push(convertRatings(response.data)); 
@@ -155,7 +155,12 @@
                     sortedEntries: function(){ return this.entries },
                     newEntryDisabled: function(){ 
                         var disabled = false;
-                        this.mandatoryFields.forEach(field => { if (!this.newEntry.hasOwnProperty(field) || this.newEntry[field].length === 0) { disabled = true; } });
+                        
+                        this.mandatoryFields.forEach(field => { 
+                            if (!this.newEntry.hasOwnProperty(field)) { return true; }
+                            if (this.newEntry[field].length === 0) { return true; } 
+                        });
+
                         return disabled;
                     }
                 },
@@ -228,10 +233,7 @@
 
                         <div class="details-buttons"> 
                             <slot name="details-buttons-section"></slot>
-                                
-                            <div class="details-buttons"> 
-                                <div class="clickable details-button" @click="deleteThisEntry"> ❌ Delete Entry </div>
-                            </div>
+                            <div class="clickable details-button" @click="deleteThisEntry"> <span class="fas fa-trash-alt"></span> Delete Entry </div>
 
                         </div>
                     </div>
@@ -991,7 +993,8 @@
             // To-Do
             Vue.component('todo-item', {
                 delimiters: ["[{","}]"],
-                props: ['todo', 'pursuits', 'projects', 'date', 'draggable','tabindent'],
+                mixins: [entryHandlingItemMixin],
+                props: ['pursuits', 'projects', 'date', 'draggable','tabindent'],
                 data: function() {
                     return {
                         showOptions: false,
@@ -1000,136 +1003,97 @@
                     }
                 },
                 template: 
-                `<div class="todo-item" v-if="!deleted" 
-                    v-bind:class="[
-                        { 'task-waiting': todo.waiting_on, 
-                        'task-completed': todo.status == 'CO' || todo.status == 'CA',
-                        'draggable': draggable,
-                        'low-priority': todo.priority === 1,
-                        'medium-priority': todo.priority === 2,
-                        'high-priority': todo.priority === 3,
-                        }]">
-                    
-                    <span class="clickable edit-icon" v-on:click="toggleOptions">
-                        <span v-if="showOptions"><i class="fas fa-chevron-circle-up"></i></span>
-                        <span v-else><i class="fas fa-chevron-circle-down"></i></span>
-                    </span>
-                    
-                    
-                    <span class="pursuit" v-if="getPursuitFromLoaded(todo.pursuit)"> [{ getPursuitFromLoaded(todo.pursuit).icon }] </span>
-                    <span class="clickable heavy-icon" v-on:click="toggleStatus">
-                        <span v-if="todo.status === 'CO'"><i class="far fa-check-square"></i></span>
-                        <span v-else-if="todo.status === 'CA'"><i class="fas fa-square"></i></span>
-                        <span v-else><i class="far fa-square"></i></span>
-                    </span> 
-                    
-                    <span class="blink negamoney" v-if="todo.start_time"> <span class="fas fa-circle"></span> </span>
-                    <span class="todo-name"> [{ todo.name }] </span>
-                    <span class="todo-project" v-if="todo.project"> [{ getProjectFromLoaded(todo.project).name }] </span> 
+                `<entry-item class="todo-item" :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry"
+                    v-bind:class="[ { 'task-waiting': entry.waiting_on, 'task-completed': entry.status == 'CO' || entry.status == 'CA', 'draggable': draggable }]">
 
-                    <span class="waiting-on" v-if="todo.due_date" v-bind:class="[{negamoney: todoPastDue}]">
-                        (Due: [{ todo.due_date }])
-                    </span>
+                    <template slot="display-section">
+                    
+                        <span class="pursuit" v-if="getPursuitFromLoaded(entry.pursuit)"> [{ getPursuitFromLoaded(entry.pursuit).icon }] </span>
+                        <span class="clickable heavy-icon" v-on:click="toggleStatus">
+                            <span v-if="entry.status === 'CO'"><i class="far fa-check-square"></i></span>
+                            <span v-else-if="entry.status === 'CA'"><i class="fas fa-square"></i></span>
+                            <span v-else><i class="far fa-square"></i></span>
+                        </span> 
+                        <span class="blink negamoney" v-if="entry.start_time"> <span class="fas fa-circle"></span> </span>
+                        <span class="todo-name"> [{ entry.name }] </span>
+                        <span class="todo-project" v-if="entry.project"> [{ getProjectFromLoaded(entry.project).name }] </span> 
+                        <span class="waiting-on" v-if="entry.due_date" v-bind:class="[{negamoney: todoPastDue}]"> (Due: [{ entry.due_date }]) </span>
+                        <span class="waiting-on" v-if="entry.waiting_on"> (Waiting On... [{ entry.waiting_on }]) </span>
 
-                    <span class="waiting-on" v-if="todo.waiting_on">
-                        (Waiting On... [{ todo.waiting_on }])
-                    </span>
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
-                        <label> Task: 
-                            <input v-model="todo.name" v-on:blur="updateToDo"/> 
-                        </label>
-
+                    </template>
+                    
+                    <template slot="details-section">
+                    
+                        <label> Task: <input v-model="entry.name" @blur="updateEntry" @input="inputChanged()" /> </label>
                         <label> Pursuit: 
-                            <select v-model="todo.pursuit" v-on:change="updateToDo">
+                            <select v-model="entry.pursuit" @change="inputChanged(); updateEntry();" >
                                 <option v-for="pursuit in pursuits" :value="pursuit.id">
                                     [{ pursuit.icon }] [{ pursuit.name }]
                                 </option>
                             </select>
                         </label>
-
                         <label> Project: 
-                            <select v-model="todo.project" v-on:change="updateToDo">
+                            <select v-model="entry.project" @change="inputChanged(); updateEntry();" >
                                 <option v-for="project in projects" :value="project.id" v-if="!project.complete">
                                     [{ project.name }] 
                                 </option>
                             </select>
                         </label>
+                        <label> Waiting On: <input v-model="entry.waiting_on" @blur="updateEntry" @input="inputChanged()" /> </label>
+                        <label> Due: </label> <input type="date" v-model="entry.due_date" @blur="updateEntry" @input="inputChanged()"></vuejs-datepicker>
+                        <label> Details: <textarea v-model="entry.details" @blur="updateEntry" @input="inputChanged()" @keydown.tab="textAreaTab" /> </label>
+                        <div> <label>Duration:</label> [{ entry.duration }] </div>
 
-                        <label> Waiting On: 
-                            <input v-model="todo.waiting_on" v-on:blur="updateToDo"/> 
-                        </label>
+                    </template>
+                    
+                    <template slot="details-buttons-section">
+                        <div class="clickable details-button" @click="toggleStart" v-if="!entry.start_time"> <span class="fas fa-play"></span> Start Task </div>
+                        <div class="clickable details-button" @click="toggleStart" v-if="entry.start_time"> <span class="fas fa-pause"></span> Pause Task </div>
+                        <div class="clickable details-button" @click="toggleStatus('CA')"> <span class="fas fa-ban"></span> Cancel Task </div>
+                    </template>
 
-                        <label> Due: 
-                            <input v-model="todo.due_date" type="date" v-on:blur="updateToDo"/> 
-                        </label>
-
-                        <label> Details: 
-                            <textarea v-model="todo.details" v-on:blur="updateToDo" @keydown.tab="textAreaTab" /> 
-                        </label>
-
-                        <div class="priority" v-if="false">
-                                <label> Priority </label>
-                                <label class="inline-label"> <input type="radio" v-model="todo.priority" value=1 v-on:change="updateToDo"> High </label> 
-                                <label class="inline-label"> <input type="radio" v-model="todo.priority" value=2 v-on:change="updateToDo"> Medium </label> 
-                                <label class="inline-label"> <input type="radio" v-model="todo.priority" value=3 v-on:change="updateToDo"> Low </label>
-                        </div>
-
-                        <div> <label>Duration:</label> [{ todo.duration }] </div>
-                        <span class="waiting-on" v-if="false"> Rank: [{todo.rank}] </span>
-
-                        <div class="details-buttons"> 
-                            <div class="clickable details-button" v-on:click="toggleStart" v-if="!todo.start_time"> <span class="fas fa-play"></span> Start Task </div>
-                            <div class="clickable details-button" v-on:click="toggleStart" v-if="todo.start_time"> <span class="fas fa-pause"></span> Pause Task </div>
-                            <div class="clickable details-button" v-on:click="toggleStatus('CA')"> <span class="fas fa-ban"></span> Cancel Task </div>
-                            <div class="clickable details-button" v-on:click="deleteToDo"> <span class="fas fa-trash-alt"></span> Delete Task </div>
-                        </div>
-                    </div>
-                </div>`,
+                </entry-item>`,
                 methods: {
-                    toggleOptions: function() {
-                        this.showOptions = !this.showOptions;
-                    },
                     toggleStatus: function(newStatus) {
-                        this.todo.status = this.todo.status != 'IN' ? 'IN' : 'CO';
-                        if (newStatus === 'CA') { this.todo.status = 'CA'; }
-                        if (this.todo.status != 'IN'){
-                            newDate = new Date();
-                            timeString = String(newDate.getHours()) + ':' + String(newDate.getMinutes()).padStart(2,'0');
-                            this.todo.finish_time = moment(String(this.date) + " " + timeString);
-                            this.todo.waiting_on = null;
+                        this.entry.status = this.entry.status != 'IN' ? 'IN' : 'CO';
+                        if (newStatus === 'CA') { this.entry.status = 'CA'; }
+                        if (this.entry.status != 'IN'){
+                            this.entry.finish_time = moment();
+                            this.entry.waiting_on = null;
                             this.showOptions = false;
-                            if (!this.todo.start_time) { this.todo.start_time = moment(newDate); }
+                            if (!this.entry.start_time) { this.entry.start_time = moment(); }
+                            console.log(this.entry.finish_time);
                             this.toggleStart();
                         }
-                        else { this.todo.finish_time = null; }
+                        else { this.entry.finish_time = null; }
                         this.updateToDo();
                     },
                     toggleStart: function() {
-                        if (this.todo.start_time){
-                            var new_duration = moment(new Date()) - moment(this.todo.start_time)
+                        if (this.entry.start_time){
+                            var new_duration = moment(new Date()) - moment(this.entry.start_time)
                             
-                            if (!this.todo.duration) { this.todo.duration = new_duration; }
-                            else { this.todo.duration = moment.duration(this.todo.duration) + moment.duration(new_duration); }
-                            this.todo.duration = parseInt(this.todo.duration / 1000);
+                            if (!this.entry.duration) { this.entry.duration = new_duration; }
+                            else { this.entry.duration = moment.duration(this.entry.duration) + moment.duration(new_duration); }
+                            this.entry.duration = parseInt(this.entry.duration / 1000);
 
-                            this.todo.start_time = null;
+                            this.entry.start_time = null;
                             this.updateToDo();
                         }
                         else {
                             newDate = new Date();
                             timeString = String(newDate.getHours()) + ':' + String(newDate.getMinutes()).padStart(2,'0');
-                            this.todo.start_time = moment(newDate);
+                            this.entry.start_time = moment(newDate);
                             this.updateToDo();
                         }
                     },
                     updateToDo: function() {
-                        if (this.todo.due_date === "") { this.todo.due_date = null;}
-                        myAxios.put("todo" + "/" + this.todo.id, this.todo)
-                            .then(response => this.todo.duration = response.data.duration);
+                        if (this.entry.due_date === "") { this.entry.due_date = null;}
+                        myAxios.put("todo" + "/" + this.entry.id, this.entry)
+                            .then(response => this.entry.duration = response.data.duration);
                     },
                     deleteToDo: function() {
                         this.deleted = true;
-                        myAxios.delete("todo/" + this.todo.id);
+                        myAxios.delete("todo/" + this.entry.id);
                     },
                     getPursuitFromLoaded: function(id){ return this.pursuits.find(p => p.id === id); },
                     getProjectFromLoaded: function(id){ return this.projects.find(p => p.id === id); },
@@ -1145,12 +1109,11 @@
                 },
                 computed: {
                     todoPastDue: function(){
-                        console.log(moment(new Date()))
-                        console.log(moment(this.todo.due_date))
-                        var dateDiff = moment(this.todo.due_date) - moment(new Date());
+                        var dateDiff = moment(this.entry.due_date) - moment(new Date());
                         return dateDiff < 0;
-                    }
-                }
+                    },
+                },
+                components: { vuejsDatepicker }
             });
             Vue.component('pursuit', {
                 delimiters: ["[{","}]"],
@@ -1162,16 +1125,11 @@
             });
             todoComponent = Vue.component('todo-page', {
                 delimiters: ["[{","}]"],
+                mixins: [entryHandlingPageMixin],
                 data: function() {
                     return {
-                        date: dateToString(new Date()),
-                        todos: [],
-                        newTaskName: '',
-                        newTaskPursuit: 1,
-                        newTaskProject: null,
                         newPursuitName: '',
                         newPursuitIcon: '',
-                        showNewTask: false,
                         pursuits: [],
                         showSettings: true,
                         hideComplete: false,
@@ -1183,11 +1141,13 @@
                         projectFilter: null,
                         sortOn: 'rank',
                         options: optionsStore,
+                        endpoint: 'todo',
+                        mandatoryFields: ['name'],
                     }
                 },
                 computed: {
                     sortedTasks: function(){
-                        filteredTasks = this.todos;
+                        filteredTasks = this.entries;
                         if (this.pursuitFilter){ filteredTasks = filteredTasks.filter(todo => this.pursuitFilter === todo.pursuit) }
                         if (this.projectFilter){ filteredTasks = filteredTasks.filter(todo => this.projectFilter === todo.project) }
                         //if (this.hideComplete) { filteredTasks = filteredTasks.filter(todo => todo.status != 'CO') }
@@ -1195,75 +1155,37 @@
                         return _.orderBy(filteredTasks, this.sortOrder , ['desc', 'asc']);
                     },
                     highestRank: function(){
-                        if (this.todos.length) { return this.todos.reduce((a,b) => a.rank > b.rank ? a : b).rank }
+                        if (this.entries.length) { return this.entries.reduce((a,b) => a.rank > b.rank ? a : b).rank }
                         else { return 1 }
                     },
                     sortOrder: function(){
                         if (this.sortOn == 'rank') { return ['status', /*'priority',*/ 'rank', 'pursuit']; }
                         else { return ['status', /*'priority',*/ 'pursuit', 'rank']; }
                     },
-                    dragOptions: function(){
-                        return {'disabled': (this.sortOn != 'rank' || this.options.state.disableDrag) };
-                    },
-                    firstMedium: function(){
-                        return this.sortedTasks.find(todo => todo.priority == 2).id
-                    },
-                    completedTasks: function(){
-                        return this.sortedTasks.filter(t => t.status === 'CO');
-                    },
-                    canceledTasks: function(){
-                        return this.sortedTasks.filter(t => t.status === 'CA');
-                    },
-                    completedPercent: function(){
-                        return Math.round((this.completedTasks.length / (this.sortedTasks.length - this.canceledTasks.length) ) * 100 * 10) / 10; 
-                    },
-                    newEntryDisabled: function(){ 
-                        return this.newTaskName.length === 0;
-                    }
+                    dragOptions: function(){ return {'disabled': (this.sortOn != 'rank' || this.options.state.disableDrag) }; },
+                    completedTasks: function(){ return this.sortedTasks.filter(t => t.status === 'CO'); },
+                    canceledTasks: function(){ return this.sortedTasks.filter(t => t.status === 'CA'); },
+                    completedPercent: function(){ return Math.round((this.completedTasks.length / (this.sortedTasks.length - this.canceledTasks.length) ) * 100 * 10) / 10; },
                 },
                 mounted: function() {
                     this.getToDoPursuits();
                     this.getProjects();
-                    this.getToDosByDate(dateToString(new Date()));
-                },
-                watch: {
-                    date: function() {
-                        this.getToDosByDate(dateToString(this.date));
-                    }
                 },
                 methods: {
-                    getToDosByDate: function(date) {
-                        myAxios.get("todo/" + date)
-                            .then(response => this.todos = response.data)
-                    },
-                    confirmNewTaskEntry: function(event) {
-                        event.preventDefault();
-                        var newTask = {
-                            'name': this.newTaskName,
-                            'pursuit': this.newTaskPursuit,
-                            'project': this.newTaskProject,
-                            'date': this.date,
-                            'status': 'IN',
-                            'rank': this.highestRank + 1
-                        }
-                        this.showNew = false;
-                        this.newToDo(newTask);
-                        return false;
-                    },
-                    newToDo: function(newTask) {
-                        myAxios.post("todo", newTask)
-                            .then(response => {
-                                this.todos.push(response.data)
-                                this.newTaskName = '';
-                            });
-                    },
                     getToDoPursuits: function(){
                         myAxios.get("pursuits")
                             .then(response => {
                                 this.pursuits = response.data; 
+                                this.pursuits = response.data.slice(0);
+                                
+                                this.pursuits.unshift({icon:'', name:'N/A', id: null})
+
                                 this.pursuitsForFilter = response.data.slice(0);
                                 this.pursuitsForFilter.unshift({icon:'All', name:''})
                                 this.pursuitFilter = this.pursuitsForFilter[0]
+
+
+                                this.newEntry.pursuit = null;
                             });
                     },
                     getProjects: function(){
@@ -1272,6 +1194,7 @@
                                 this.projects = response.data;
                                 this.projects = response.data.slice(0);
                                 this.projects.unshift({name:'N/A', id:null})
+                                this.newEntry.project = null;
                             });
                     },
                     checkMove: function(evt) {
@@ -1286,7 +1209,7 @@
                         else { rankAbove = this.sortedTasks[evt.newIndex-1].rank; }
 
                         // Handle if task is moved to the very bottom
-                        if (evt.newIndex == this.todos.length - 1){ rankBelow = this.todos.length; }
+                        if (evt.newIndex == this.entries.length - 1){ rankBelow = this.entries.length; }
                         else { rankBelow = this.sortedTasks[evt.newIndex+1].rank; }
 
                         // Handle if task is moved amongst completed tasks
@@ -1294,12 +1217,11 @@
                         else { newRank = ((rankBelow + rankAbove) / 2.0); }
                         
                         taskMoved.rank = newRank;
-                        evt.item.__vue__.updateToDo();
-                        //var prevToDo = evt.item.previousSibling.__vue__.todo;
-                        //var nextToDo = evt.item.nextSibling.__vue__.todo;
-                        //var thisToDo = evt.item.__vue__.todo;
-                        //console.log(prevToDo, thisToDo, nextToDo);
+                        evt.item.__vue__.$parent.updateEntry();
                     },
+                    assignRank: function(){
+                        this.newEntry.rank = this.highestRank + 1;
+                    }
                 },
                 components: { vuejsDatepicker },
                 template: 
@@ -1308,6 +1230,7 @@
                     <h1>To-Do</h1>
                     <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
                     <label class="inline-label">Completed Tasks: </label>[{ completedTasks.length }]/[{ sortedTasks.length - canceledTasks.length }] ([{ completedPercent }]%)
+
                     <div id="filters">
                         <h2>Filters</h2>
                         
@@ -1342,12 +1265,14 @@
                             <label class="inline-label"> <input type="radio" v-model="sortOn" value="rank"> Rank </label>
                             <label class="inline-label">  <input type="radio" v-model="sortOn" value="pursuit"> Pursuit </label>
                         </div>
+                        
                     </div>
 
                     <draggable :list="sortedTasks" class="dragArea object-list" @end="checkMove" :options="dragOptions">
                         <todo-item v-for="item in sortedTasks"
-                        :todo="item"
+                        :entry="item"
                         :key="item.id"
+                        :endpoint="endpoint"
                         :pursuits="pursuits"
                         :projects="projects"
                         :date="date"
@@ -1356,29 +1281,25 @@
                         v-if="item.status != 'CO' || hideComplete === false">
                         </todo-item>
                     </draggable>
-                        
-                    <div id="newTask">
-                        <form class="new-entry-form">
-                            <input v-model="newTaskName" placeholder="Task"/> 
-                            <label> Pursuit: 
-                                <select v-model="newTaskPursuit">
-                                    <option v-for="pursuit in pursuits" :value="pursuit.id">
-                                        [{ pursuit.icon }] [{ pursuit.name }]
-                                    </option>
-                                </select>
-                            </label>
-                            <label> Project: 
-                                <select v-model="newTaskProject">
-                                    <option v-for="project in projects" :value="project.id" v-if="!project.complete">
-                                        [{ project.name }]
-                                    </option>
-                                </select>
-                            </label>
-                            <button class="btn btn-primary" v-on:click="confirmNewTaskEntry($event)" :disabled="newEntryDisabled" :class="{ disabled: newEntryDisabled }"> Create New </button>
-                        </form>
-                    </div>
 
-                    
+                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="assignRank(); createNewEntry();">
+                        <input v-model="newEntry.name" placeholder="Task"/> 
+                        <label> Pursuit: 
+                            <select v-model="newEntry.pursuit">
+                                <option v-for="pursuit in pursuits" :value="pursuit.id">
+                                    [{ pursuit.icon }] [{ pursuit.name }]
+                                </option>
+                            </select>
+                        </label>
+                        <label> Project: 
+                            <select v-model="newEntry.project">
+                                <option v-for="project in projects" :value="project.id" v-if="!project.complete">
+                                    [{ project.name }]
+                                </option>
+                            </select>
+                        </label>
+                    </new-entry-form>
+
                 </div> 
                 `
             });
