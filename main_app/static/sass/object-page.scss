@@ -1,0 +1,21 @@
+@import 'variables';
+
+.new-entry-datum {
+    margin: 5px;
+    padding: 5px;
+    border-top: 1px solid $color-bg-darker-grey;
+
+    &:first-child {
+        border-top: 0;
+        margin-top: 0;
+        padding-top: 0;
+    }
+
+    label {
+        font-size: 1em;
+    }
+
+    textarea, input {
+        width: 100%;
+    }
+}

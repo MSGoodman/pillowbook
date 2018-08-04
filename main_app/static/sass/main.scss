@@ -1,6 +1,7 @@
 @import 'variables';
 @import 'signup';
 @import 'navbar';
+@import 'object-page';
 
 /* Universal Styles */      
 html, body, .app { height:100%; }
@@ -59,6 +60,11 @@ a {
         display: block;
         font-weight: bold;
     }
+}
+
+.btn-block {
+    display: block;
+    margin-top: 5px;
 }
 
 #table-bottom-header {

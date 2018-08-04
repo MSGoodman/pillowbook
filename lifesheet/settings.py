@@ -28,7 +28,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '142.93.14.88', 'www.pillowbook.app', 'www.pillow-book.com']
 
-
 CORS_ORIGIN_WHITELIST = (
     'localhost:3000',
     'localhost:8000',

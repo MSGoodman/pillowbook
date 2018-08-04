@@ -190,7 +190,7 @@
                 <div>
                     <form class="new-entry-form">
                         <slot></slot>
-                        <button class="btn btn-primary" @click="clicked($event)" :disabled="newEntryDisabled" :class="{ disabled: newEntryDisabled }"> Create New </button>
+                        <button class="btn btn-primary btn-block" @click="clicked($event)" :disabled="newEntryDisabled" :class="{ disabled: newEntryDisabled }"> Create New </button>
                     </form>
                 </div>
                 `
@@ -365,9 +365,9 @@
                     </div>
                     
                     <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
-                        <label>Highlights: <input type="text" v-model="newEntry.highlights" /> </label>
-                        <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Description: <textarea v-model="newEntry.description" /> </textarea> </label>
+                        <div class="new-entry-datum"> <label>Highlights </label> <input type="text" v-model="newEntry.highlights" /> </div>
+                        <div class="new-entry-datum"> <label>Rating </label><star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </div>
+                        <div class="new-entry-datum"> <label>Description </label> <textarea v-model="newEntry.description" /> </textarea> </div>
                     </new-entry-form>
 
                 </div>
