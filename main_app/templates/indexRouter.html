@@ -38,6 +38,8 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     <!-- vuejs-datepicker -->
     <script src="https://unpkg.com/vuejs-datepicker"></script>
+    <!-- ddSlick -->
+    <script src="{% static 'js/libs/jquery.ddslick.js' %}"></script>
 
     <!-- My CSS -->
     <link rel="stylesheet" type="text/css" href="{% static 'stylesheets/main.css' %}">
@@ -142,7 +144,9 @@
                 },
                 methods: {
                     createNewEntry: function() {
+                        console.log(JSON.stringify(this.newEntry));
                         this.newEntry['date'] = dateToString(this.date);
+                        console.log(JSON.stringify(this.newEntry));
                         myAxios.post(this.endpoint, this.newEntry)
                             .then(response => {
                                 this.entries.push(convertRatings(response.data)); 
@@ -578,14 +582,30 @@
             // Toilet
             Vue.component('toilet-item', {
                 mixins: [entryHandlingItemMixin],
+                mounted: function() { 
+                    $($(this)[0].$el).find('.bristol-dropdown').ddslick({
+                        width: '100%',
+                        imagePosition: "middle",
+                        selectText: "Select bristol scale value",
+                        onSelected: (selected) => { 
+                            if (this.entry.bristol != selected.selectedData.value) {
+                                this.entry.bristol = selected.selectedData.value; 
+                                this.inputChanged();
+                                this.updateEntry();
+                            }
+                        }
+                    });
+                    
+                    $($(this)[0].$el).find('.dd-container').ddslick('select', {index: this.entry.bristol - 1 });
+
+                },
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
                     <template slot="display-section">
                         
                         <div class="item-body-element">
-                            <b> [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] </b> 
-                            <div> <b> Bristol: </b> <img v-bind:src="bristolImageSrc" v-if="entry.bristol < 8 && entry.bristol > 0 " class="bristol-image" /> </div>
+                            [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] <b>([{ entry.bristol}] <img v-bind:src="bristolImageSrc" class="bristol-image" />)</b>
                         </div>
                         
                     </template>
@@ -595,13 +615,23 @@
                         <label>Time Started: <input type="time" v-model="entry.start_time" @blur="updateEntry" @input="inputChanged()"  /> </label>
                         <label>Time Ended: <input type="time" v-model="entry.end_time" @blur="updateEntry" @input="inputChanged()"  /> </label>
                         <label>Bristol: <input type="number" v-model="entry.bristol" min="1" max="7" @blur="updateEntry" @input="inputChanged()" /> </label>
+                        
+                        <select class="bristol-dropdown" style="margin:0 auto;" >
+                            <option value="1" data-imagesrc="{% static "img/bristol1.png" %}" data-description="Separate hard lumps">Type 1</option>
+                            <option value="2" data-imagesrc="{% static "img/bristol2.png" %}" data-description="Sausage-shaped but lumpy">Type 2</option>
+                            <option value="3" data-imagesrc="{% static "img/bristol3.png" %}" data-description="Like a sausage but with cracks on its surface">Type 3</option>
+                            <option value="4" data-imagesrc="{% static "img/bristol4.png" %}" data-description="Like a sausage or snake, smooth and soft">Type 4</option>
+                            <option value="5" data-imagesrc="{% static "img/bristol5.png" %}" data-description="Soft blobs with clear-cut edges">Type 5</option>
+                            <option value="6" data-imagesrc="{% static "img/bristol6.png" %}" data-description="Fluffy pieces with ragged edges">Type 6</option>
+                            <option value="7" data-imagesrc="{% static "img/bristol7.png" %}" data-description="Watery, no solid pieces">Type 7</option>
+                        </select>
 
                     </template>
 
                 </entry-item>`,
                 computed: {
                     bristolImageSrc: function() {
-                        var imgName = "bristol" + this.entry.bristol + ".png";
+                        var imgName = "img/bristol" + this.entry.bristol + ".png";
                         return `{% static imgName %}` + imgName
                     }
                 }
@@ -614,6 +644,22 @@
                         var imgName = "bristol" + this.newEntry.bristol + ".png";
                         return `{% static imgName %}` + imgName
                     },
+                },
+                mounted: function() { 
+                    $($(this)[0].$el).find('.bristol-dropdown').ddslick({
+                        width: '100%',
+                        imagePosition: "middle",
+                        selectText: "Select bristol scale value",
+                        defaultSelectedIndex: null,
+                        onSelected: (selected) => { 
+                            console.log(this);
+                            if (this.newEntry.bristol != selected.selectedData.value) {
+                                this.newEntry.bristol = parseInt(selected.selectedData.value); 
+                                console.log(selected.selectedData.value)
+                                console.log(JSON.stringify(this.newEntry));
+                            }
+                        }
+                    }); ;
                 },
                 template:
                 `
@@ -630,11 +676,24 @@
                     </div>
                     
                     <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
-                    
+
+
                         <div class="new-entry-datum"> <label> Time Started: </label><input type="time" v-model="newEntry.start_time" />  </div>
                         <div class="new-entry-datum"> <label> Time Ended: </label><input type="time" v-model="newEntry.end_time" />  </div>
-                        <div class="new-entry-datum"> <label> Bristol: </label><input type="number" v-model="newEntry.bristol" min="1" max="7" />  </div>
-                        <img v-bind:src="bristolImageSrc" v-if="newEntry.bristol < 8 && newEntry.bristol > 0 " />
+                        <div class="new-entry-datum"> 
+                            <label> Bristol: </label>
+                        
+                            <select class="bristol-dropdown" style="margin:0 auto;" >
+                                <option value="1" data-imagesrc="{% static "img/bristol1.png" %}" data-description="Separate hard lumps">Type 1</option>
+                                <option value="2" data-imagesrc="{% static "img/bristol2.png" %}" data-description="Sausage-shaped but lumpy">Type 2</option>
+                                <option value="3" data-imagesrc="{% static "img/bristol3.png" %}" data-description="Like a sausage but with cracks on its surface">Type 3</option>
+                                <option value="4" data-imagesrc="{% static "img/bristol4.png" %}" data-description="Like a sausage or snake, smooth and soft">Type 4</option>
+                                <option value="5" data-imagesrc="{% static "img/bristol5.png" %}" data-description="Soft blobs with clear-cut edges">Type 5</option>
+                                <option value="6" data-imagesrc="{% static "img/bristol6.png" %}" data-description="Fluffy pieces with ragged edges">Type 6</option>
+                                <option value="7" data-imagesrc="{% static "img/bristol7.png" %}" data-description="Watery, no solid pieces">Type 7</option>
+                            </select>
+
+                        </div>
                     </new-entry-form>
 
                 </div>
