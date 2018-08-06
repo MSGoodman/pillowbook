@@ -175,7 +175,7 @@
                 state: {
                     tabIndent: false,
                     tabIndentSpaces: 0,
-                    disableDrag: false,
+                    enableDrag: false,
                 },
             }
             
@@ -1201,6 +1201,7 @@
                         options: optionsStore,
                         endpoint: 'todo',
                         mandatoryFields: ['name'],
+                        showOptionsSection: false
                     }
                 },
                 computed: {
@@ -1220,7 +1221,7 @@
                         if (this.sortOn == 'rank') { return ['status', /*'priority',*/ 'rank', 'pursuit']; }
                         else { return ['status', /*'priority',*/ 'pursuit', 'rank']; }
                     },
-                    dragOptions: function(){ return {'disabled': (this.sortOn != 'rank' || this.options.state.disableDrag) }; },
+                    dragOptions: function(){ return {'disabled': (this.sortOn != 'rank' || !this.options.state.enableDrag) }; },
                     completedTasks: function(){ return this.sortedTasks.filter(t => t.status === 'CO'); },
                     canceledTasks: function(){ return this.sortedTasks.filter(t => t.status === 'CA'); },
                     completedPercent: function(){ return Math.round((this.completedTasks.length / (this.sortedTasks.length - this.canceledTasks.length) ) * 100 * 10) / 10; },
@@ -1279,12 +1280,22 @@
                     },
                     assignRank: function(){
                         this.newEntry.rank = this.highestRank + 1;
-                    }
+                    },
                 },
                 components: { vuejsDatepicker },
                 template: 
                 `
                 <div>
+                    <div class="drag-option-box"> 
+                        <span class="arrow-section" @click="showOptionsSection=!showOptionsSection">
+                            <i class="fas fa-caret-right" v-show="showOptionsSection"></i>
+                            <i class="fas fa-caret-left" v-show="!showOptionsSection"></i>
+                        </span> 
+                        <span class="option-section" v-show="showOptionsSection"> 
+                            <label> <i class="fas fa-hand-rock"></i> <i class="fas fa-arrows-alt-v"></i> <input type="checkbox" v-model="options.state.enableDrag"> </label> 
+                        </span>
+                    </div>
+
                     <h1>To-Do</h1>
                     <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
                     <label class="inline-label">Completed Tasks: </label>[{ completedTasks.length }]/[{ sortedTasks.length - canceledTasks.length }] ([{ completedPercent }]%)
@@ -3356,7 +3367,7 @@
                                 
                                 <a class="dropdown-item" href="{% url 'logout'%}?next={{request.path}}"><i class="fas fa-sign-out-alt"></i> Logout </a>
                                 <a class="dropdown-item" href="#" onclick="event.stopPropagation();" >
-                                    <label> Disable Dragging <input type="checkbox" v-model="options.state.disableDrag"> </label>
+                                    <label> Disable Dragging <input type="checkbox" v-model="options.state.enableDrag"> </label>
                                 </a>
                                 <a class="dropdown-item" href="#" onclick="event.stopPropagation();">
                                     <label> Tab Indents Text <input type="checkbox" v-model="options.state.tabIndent"> </label>
