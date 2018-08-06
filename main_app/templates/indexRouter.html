@@ -614,7 +614,6 @@
                         
                         <label>Time Started: <input type="time" v-model="entry.start_time" @blur="updateEntry" @input="inputChanged()"  /> </label>
                         <label>Time Ended: <input type="time" v-model="entry.end_time" @blur="updateEntry" @input="inputChanged()"  /> </label>
-                        <label>Bristol: <input type="number" v-model="entry.bristol" min="1" max="7" @blur="updateEntry" @input="inputChanged()" /> </label>
                         
                         <select class="bristol-dropdown" style="margin:0 auto;" >
                             <option value="1" data-imagesrc="{% static "img/bristol1.png" %}" data-description="Separate hard lumps">Type 1</option>
