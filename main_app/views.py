@@ -147,7 +147,7 @@ def app_signup(request):
                 recipient_list=[email],
                 html_message='<h1 style="text-align:center;font-family:Roboto, Arial, sans-serif"><img src="https://www.pillow-book.com/static/placeholder-icon.png" style="height: 2em" /> PillowBook</h1><p>You\'re just about ready to get started! <a href="{0}">Please click on this link</a> to verify your account.</p> <p><a href="{0}">{0}</a></p>'.format(activation_url),
             )
-            return HttpResponseRedirect('/')
+            return render(request, 'signup.html', {'success': "Thank you for signing up! Please check your inbox to confirm your email address and sign in!"}) 
 
     else:
         return render(request, 'signup.html', {})
