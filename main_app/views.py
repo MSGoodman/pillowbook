@@ -43,9 +43,8 @@ def app_activate(request, key):
         return render(request, 'activation_page.html', {'error': 'Your account is already activated.'})
 
 def app_login(request):
-    print(request)
     if request.POST:
-        print('post')
+        print(request.POST['email'])
         user_email = User.objects.get(email=request.POST['email'])
         if not user_email.is_active:
             return render(request, 'login_page.html', {'error': 'Sorry! You must activate your account via the link sent to your email address.' })
