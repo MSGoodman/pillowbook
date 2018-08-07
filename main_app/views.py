@@ -35,7 +35,7 @@ def app_activate(request, key):
         else: #Activated
             user.is_active = True
             user.save()
-            return redirect('login')
+            return render(request, 'activation_page.html', {'success': 'Thank you for confirming your email address! You can now log in!' })
 
     #If user is already active, simply display error message
     else:
