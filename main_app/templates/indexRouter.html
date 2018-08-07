@@ -50,7 +50,7 @@
 <body>
     <script>
         const myAxios = axios.create({
-            baseURL: 'https://www.pillow-book.com/api/', // 'http://localhost:8000/api/', //
+            baseURL: 'http://localhost:8000/api/', //'https://www.pillow-book.com/api/', // 'http://localhost:8000/api/', //
             timeout: 1000,
             headers: {
                 'X-CSRFToken': Cookies.get('csrftoken')
@@ -60,6 +60,19 @@
             'Content-Type': 'application/json',
         });
         
+        var moduleDescriptions = {
+            'Overview': 'A diary entry of your day, consisting of the <b>highlights</b> for quick identification, a <b>rating</b>, and a <b>detailed entry</b>.',
+            'Sleep': 'This is a load of shit!',
+            'Weight': 'This is a load of shit!',
+            'Cardio': 'This is a load of shit!',
+            'Toilet': 'This is a load of shit!',
+            'Sex': 'This is a load of shit!',
+            'Period': 'This is a load of shit!',
+            'Learning': 'This is a load of shit!',
+            'Money': 'This is a load of shit!',
+            'Study': 'This is a load of shit!',
+        };
+
         var map;
         var markers = [];
         var mapLoaded = false;
@@ -202,7 +215,7 @@
 
             Vue.component('entry-item', {
                 delimiters: ["[{","}]"],
-                props: ['deleted','updating','updated'],
+                props: ['deleted','updating','updated','hideDelete'],
                 data: function() {
                     return {
                         showOptions: false,
@@ -237,8 +250,7 @@
 
                         <div class="details-buttons"> 
                             <slot name="details-buttons-section"></slot>
-                            <div class="clickable details-button" @click="deleteThisEntry"> <span class="fas fa-trash-alt"></span> Delete Entry </div>
-
+                            <div class="clickable details-button" @click="deleteThisEntry" v-if="!hideDelete"> <span class="fas fa-trash-alt"></span> Delete Entry </div>
                         </div>
                     </div>
                 </div>
@@ -2638,28 +2650,40 @@
             // Modules
             Vue.component('module', {
                 mixins: [entryHandlingItemMixin],
+                methods: {
+                    getModuleDescription: function() {
+                        return moduleDescriptions[this.entry.name];
+                    }
+                },
                 template: 
-                `<div class="module-item">
-                    <span class="clickable edit-icon" v-on:click="showOptions = !showOptions" style="float:left;">
-                        <span v-if="showOptions">▴</span>
-                        <span v-else>✎</span>
-                    </span>
+                `
+                <entry-item :updating="updating" :updated="updated" :hideDelete="true" class="module-entry">
                     
-                    <span class="project-info">
-                        <div class="project-header"> 
-                                <input type="checkbox" v-model="entry.display" v-on:change="updateEntry"><span class="project-name"> [{ entry.name }] </span> 
-                        </div>
-                    </span>
+                    <template slot="display-section">
 
-                    <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
-                        <label>Section: <input v-model="entry.category" v-on:blur="updateEntry" /> </label>
-                        <label>Color: <input v-model="entry.background_color" v-on:blur="updateEntry" /> </label>
-                        <label>Color (Complete): <input v-model="entry.background_color_complete" v-on:blur="updateEntry" /> </label>
-                        <label class="inline-label"> <input type="radio" v-model="entry.icon_source" value="UN" v-on:change="updateEntry"> Unicode </label> <input v-model="entry.icon_unicode" v-on:blur="updateEntry" size="3"/>
-                        <br>
-                        <label class="inline-label">  <input type="radio" v-model="entry.icon_source" value="FA" v-on:change="updateEntry"> FontAwesome </label> <input v-model="entry.icon_font_awesome" v-on:blur="updateEntry" /> 
-                    </div>
-                </div>`,
+                        <div class="custom-checkbox-container" @click="entry.display = !entry.display; updateEntry();">
+                            <input type="checkbox" v-model="entry.display" @change="updateEntry" />
+                            <label><span></span> [{ entry.name }] </label>
+                        </div>
+
+                        <div class="module-description" v-html="getModuleDescription('Overview')">
+                            [{ getModuleDescription('Overview') }]
+                        </div>
+
+                    </template>
+
+                    <template slot="details-section">
+
+                        <label>Section: <input v-model="entry.category"@blur="updateEntry" @input="inputChanged()" /> </label>
+                        <label>Color: <input v-model="entry.background_color" @blur="updateEntry" @input="inputChanged()" /> </label>
+                        <label>Color (Complete): <input v-model="entry.background_color_complete" @blur="updateEntry" @input="inputChanged()" /> </label>
+                        <label class="inline-label"> <input type="radio" v-model="entry.icon_source" value="UN" @change="inputChanged();updateEntry();"> Unicode </label> <input v-model="entry.icon_unicode" v-on:blur="updateEntry" size="3"/>
+                        <label class="inline-label">  <input type="radio" v-model="entry.icon_source" value="FA" @change="inputChanged();updateEntry();"> FontAwesome </label> <input v-model="entry.icon_font_awesome" v-on:blur="updateEntry" /> 
+
+                    </template>
+
+                </entry-item>
+                `,
             });
             moduleComponent = Vue.component('module-page', {
                 mixins: [entryHandlingPageMixin],
@@ -2667,9 +2691,13 @@
                 mounted: function() {
                     myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
                 },
+                methods: {
+                    getModuleByName: function(name) { return _.find(this.entries, function(t) { console.log(name); t.name === name; }); } 
+                },
                 template:
                 `
                 <div id="app">
+                    <div>[{ getModuleByName('Overview') }]</div>
                     <div id="module-list" class="object-list">
                         <module v-for="item in sortedEntries"
                         :entry="item"

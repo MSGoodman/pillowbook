@@ -24,7 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '^i)pja=c^a_qiczcmcno*#t*+nvhvn!q3lwi&+!@rd@cw6u&3g'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '142.93.14.88', 'www.pillowbook.app', 'www.pillow-book.com']
 
