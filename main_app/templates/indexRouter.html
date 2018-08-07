@@ -1281,6 +1281,15 @@
                     assignRank: function(){
                         this.newEntry.rank = this.highestRank + 1;
                     },
+                    createNewEntry: function() {
+                        this.newEntry['date'] = dateToString(this.date);
+                        myAxios.post(this.endpoint, this.newEntry)
+                            .then(response => {
+                                this.entries.push(convertRatings(response.data)); 
+                                this.showNewEntry = false;
+                                this.newEntry.name = "";
+                            });
+                    },
                 },
                 components: { vuejsDatepicker },
                 template: 
