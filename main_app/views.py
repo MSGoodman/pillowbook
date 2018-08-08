@@ -16,6 +16,41 @@ from django.core import serializers
 
 from .models import *
 
+def entered_for_day(request):
+    module_info = {}
+    date = timezone.now().date()
+
+    # Diary
+    module_info['Diary'] = Diary.objects.filter(date=date).count()
+    module_info['Sleep'] = Sleep.objects.filter(date=date).count()
+    module_info['Weight'] = WeightExercise.objects.filter(date=date).count()
+    module_info['Cardio'] = CardioExercise.objects.filter(date=date).count()
+    module_info['Toilet'] = Toilet.objects.filter(date=date).count()
+    module_info['Sex'] = Sex.objects.filter(date=date).count()
+    module_info['Period'] = Period.objects.filter(date=date).count()
+    module_info['Learning'] = Learning.objects.filter(date=date).count()
+    module_info['Money'] = Money.objects.filter(date=date).count()
+    module_info['Study'] = Study.objects.filter(date=date).count()
+    module_info['ToDo'] = ToDo.objects.filter(date=date).count()
+    module_info['Literature'] = Literature.objects.filter(date=date).count()
+    module_info['Film'] = Film.objects.filter(date=date).count()
+    module_info['Television'] = Television.objects.filter(date=date).count()
+    module_info['Board Games'] = BoardGame.objects.filter(date=date).count()
+    module_info['Video Games'] = VideoGame.objects.filter(date=date).count()
+    module_info['Music'] = Music.objects.filter(date=date).count()
+    module_info['Podcast'] = Podcast.objects.filter(date=date).count()
+    module_info['Beer'] = Beer.objects.filter(date=date).count()
+    module_info['Wine'] = Wine.objects.filter(date=date).count()
+    module_info['Cheese'] = Cheese.objects.filter(date=date).count()
+    module_info['Pursuit Progress'] = PursuitProgress.objects.filter(date=date).count()
+    module_info['Cooking'] = Cooking.objects.filter(date=date).count()
+    module_info['Groceries'] = GroceryPurchase.objects.filter(date=date).count()
+    module_info['Meals'] = Meal.objects.filter(date=date).count()
+    module_info['Travel'] = Travel.objects.filter(date=date).count()
+
+    return JsonResponse(module_info)
+
+
 def user(request):
     if request.user.seen_intro:
         return JsonResponse({'seen_intro':True})
@@ -170,69 +205,10 @@ def module(request):
     return render(request, 'modules.html', {})
 
 def index(request):
-# LAST SEVEN DAYS
-    last_seven_days = []
-    for i in range(0, 7):
-        last_seven_days.append({})
-        date = datetime.utcnow().date() - timedelta(i)
-    
-        last_seven_days[i]['Date'] = date
-
-        # Diary
-        diary = Diary.objects.filter(date=date)
-        last_seven_days[i]['Diary'] = Diary.objects.filter(date=date)
-
-        # Health
-        sleep = Sleep.objects.filter(date=date)
-        last_seven_days[i]['Sleep'] = sleep if sleep else None
-        last_seven_days[i]['Weight'] = WeightExercise.objects.filter(date=date)
-        last_seven_days[i]['Cardio'] = CardioExercise.objects.filter(date=date)
-        
-        foods = Food.objects.filter(date=date)
-        day_food_rating = foods.aggregate(Avg('rating'))['rating__avg']
-        day_food_calories = foods.aggregate(Sum('calories'))['calories__sum']
-        last_seven_days[i]['FoodRating'] = day_food_rating
-        last_seven_days[i]['FoodCalories'] = day_food_calories
-        
-        last_seven_days[i]['Toilet'] = Toilet.objects.filter(date=date)
-        last_seven_days[i]['Period'] = Period.objects.filter(date=date)
-        last_seven_days[i]['Sex'] = Sex.objects.filter(date=date)
-
-        # Productivity
-        moneys = Money.objects.filter(date=date)
-        day_money = moneys.aggregate(Sum('amount'))
-        last_seven_days[i]['Money'] = moneys
-        last_seven_days[i]['MoneyTotal'] = day_money
-
-        last_seven_days[i]['ToDo'] = ToDo.objects.filter(date=date)
-        last_seven_days[i]['Learn'] = Learning.objects.filter(date=date)
-        last_seven_days[i]['Memory'] = Study.objects.filter(date=date)
-
-        # Art
-        lit = Literature.objects.filter(date=date)
-        last_seven_days[i]['Literature'] = lit
-        #last_seven_days[i]['Literature'] = serializers.serialize("json", lit)
-
-
-        last_seven_days[i]['Film'] = Film.objects.filter(date=date)
-        last_seven_days[i]['Television'] = Television.objects.filter(date=date)
-        last_seven_days[i]['BoardGame'] = BoardGame.objects.filter(date=date)
-        last_seven_days[i]['VideoGame'] = VideoGame.objects.filter(date=date)
-        last_seven_days[i]['Music'] = Music.objects.filter(date=date)
-        last_seven_days[i]['Podcast'] = Podcast.objects.filter(date=date)
-        last_seven_days[i]['Beer'] = Beer.objects.filter(date=date)
-        last_seven_days[i]['Wine'] = Wine.objects.filter(date=date)
-        last_seven_days[i]['Cheese'] = Cheese.objects.filter(date=date)
-    
-    context = {
-        'last_seven_days':last_seven_days,
-        'buttons': serializers.serialize("json", ModuleButton.objects.all()),
-    }
-
     if not request.user.is_authenticated:
         return HttpResponseRedirect('login')
 
-    return render(request, 'indexRouter.html', context)
+    return render(request, 'indexRouter.html', {})
 
 def diary(request):
     return render(request, 'diary.html', {'title':'Diary'})

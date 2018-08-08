@@ -303,7 +303,7 @@
             // Index
             Vue.component('module-button', {
                 delimiters: ["[{","}]"],
-                props: ['module'],
+                props: ['module','entered'],
                 data: function() { 
                     return { 
                         'background-color': ''
@@ -311,7 +311,10 @@
                 },
                 mounted: function() { },
                 computed: {
-                    style() { return "background-color: " + this.module.background_color },
+                    style() { 
+                        if (this.entered === 0) { return "background-color: " + this.module.background_color; }
+                        else { return "background-color: " + this.module.background_color_complete }
+                    },
                     fontAwesomeClass() {  return 'fas fa-' + this.module.icon_font_awesome; },
                     url(){
                         return this.module.url_name;
@@ -342,7 +345,7 @@
                         todayEntries: {} 
                     } 
                 },
-                mounted: function() { this.getAllModules(); },
+                mounted: function() { this.getAllModules(); this.getTodayEntries(); },
                 methods: {
                     getAllModules: function() {
                         myAxios.get('modules')
@@ -350,6 +353,10 @@
                     },
                     modulesForSection: function(section){
                         return this.modules.filter(m => m.category === section);
+                    },
+                    getTodayEntries: function() {
+                        lesserAxios.get('enteredForDay')
+                            .then(response => this.todayEntries = response.data);
                     }
                 },
                 computed: {
@@ -2717,7 +2724,7 @@
 
                         <div class="new-entry-datum"> <label>Section: </label> <input v-model="entry.category"@blur="updateEntry" @input="inputChanged()" /> </div>
                         <div class="new-entry-datum"> <label>Color: </label>  <input v-model="entry.background_color" @blur="updateEntry" @input="inputChanged()" /> </div>
-                        <div class="new-entry-datum" v-if="false"> <label>Color (Complete): </label> <input v-model="entry.background_color_complete" @blur="updateEntry" @input="inputChanged()" /> </div>
+                        <div class="new-entry-datum"> <label>Color (Complete): </label> <input v-model="entry.background_color_complete" @blur="updateEntry" @input="inputChanged()" /> </div>
                         <div class="new-entry-datum"> 
                             <label> <input class="not-full-width" type="radio" v-model="entry.icon_source" value="UN" @change="inputChanged();updateEntry();"> Unicode </label> 
                             <input v-model="entry.icon_unicode" v-on:blur="updateEntry" size="3"/>  

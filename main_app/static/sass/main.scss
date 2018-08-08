@@ -27,7 +27,7 @@ a {
     height: 85px;
     display: inline-block;
     margin: 5px;
-    color: black;
+    color: $color-not-black !important;
     text-align: center;
     overflow: hidden;
     text-decoration: none;

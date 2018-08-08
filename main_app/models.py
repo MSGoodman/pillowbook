@@ -306,7 +306,7 @@ class ModuleButton(BaseModel):
     icon_font_awesome = models.TextField(blank=True, null=True)
     display = models.BooleanField(default=True)
     category = models.TextField(blank=True, null=True)
-    background_color_complete = models.TextField(blank=True, null=True)
+    background_color_complete = models.TextField(default='#6e8a99')
     
     def __str__(self):
         return self.name
