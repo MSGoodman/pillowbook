@@ -6,9 +6,9 @@ from rest_framework import serializers
 
 from .models import *
 
-class OverviewSerializer(serializers.ModelSerializer):
+class DiarySerializer(serializers.ModelSerializer):
 	class Meta:
-		model = Overview
+		model = Diary
 		extra_kwargs = { 'user': {'default': serializers.CreateOnlyDefault(serializers.CurrentUserDefault())} } 
 		fields = '__all__'
 

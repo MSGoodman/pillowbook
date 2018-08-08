@@ -77,7 +77,7 @@ def app_login(request):
 def make_new_user_module_buttons(user_instance):
     print(user_instance)
     print("MAKING BUTTONS")
-    ModuleButton.objects.create(name='Overview',url_name='overview',icon_font_awesome='clipboard-list',user=user_instance)
+    ModuleButton.objects.create(name='Diary',url_name='diary',icon_font_awesome='clipboard-list',user=user_instance)
     print("MADE ONE")
     ModuleButton.objects.create(name='Sleep',url_name='sleep',icon_font_awesome='bed',user=user_instance)
     ModuleButton.objects.create(name='Weight',url_name='weight',icon_font_awesome='dumbbell',user=user_instance)
@@ -178,9 +178,9 @@ def index(request):
     
         last_seven_days[i]['Date'] = date
 
-        # Overview
-        overview = Overview.objects.filter(date=date)
-        last_seven_days[i]['Overview'] = Overview.objects.filter(date=date)
+        # Diary
+        diary = Diary.objects.filter(date=date)
+        last_seven_days[i]['Diary'] = Diary.objects.filter(date=date)
 
         # Health
         sleep = Sleep.objects.filter(date=date)
@@ -234,8 +234,8 @@ def index(request):
 
     return render(request, 'indexRouter.html', context)
 
-def overview(request):
-    return render(request, 'overview.html', {'title':'Overview'})
+def diary(request):
+    return render(request, 'diary.html', {'title':'Diary'})
 
 def sleep(request):
     return render(request, 'sleep.html', {'title':'Sleep'})

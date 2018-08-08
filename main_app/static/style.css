@@ -93,10 +93,10 @@ body {
     background-color: #ccd3e0;
 }
 
-#col-overview-date { width: 100px; }
-#col-overview-highlights { width: 300px; }
-#col-overview-summary { width: 300px; }
-#col-overview-rating { width: 35px; }
+#col-diary-date { width: 100px; }
+#col-diary-highlights { width: 300px; }
+#col-diary-summary { width: 300px; }
+#col-diary-rating { width: 35px; }
 #col-health-sleep { width: 45px; }
 #col-health-exercise { width: 60px; }
 #col-health-food { width: 90px; }

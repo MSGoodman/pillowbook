@@ -11,8 +11,8 @@ urlpatterns = [
     url(r'^user', views.user, name='activate'),
 
     url(r'^modules$', views.module, name='modules'),
-    url(r'^overview/$', views.overview, name='overview'),
-	url(r'^overview/(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<date>[0-9]+)$', views.overview, name='overview'),
+    url(r'^diary/$', views.diary, name='diary'),
+	url(r'^diary/(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<date>[0-9]+)$', views.diary, name='diary'),
 
     url(r'^sleep/$', views.sleep, name='sleep'),
     url(r'^sleep/(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<date>[0-9]+)$', views.sleep, name='sleep'),

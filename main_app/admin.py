@@ -5,7 +5,7 @@ from .models import *
 admin.site.register(User)
 
 admin.site.register(ModuleButton)
-admin.site.register(Overview)
+admin.site.register(Diary)
 admin.site.register(Sleep)
 admin.site.register(WeightExercise)
 admin.site.register(CardioExercise)

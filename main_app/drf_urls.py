@@ -7,9 +7,9 @@ urlpatterns = [
 	url(r'^modules$', ModuleButtonList.as_view()),
 	url(r'^modules/(?P<pk>[0-9]+)$', ModuleButtonDetails.as_view()),
 
-	url(r'^overview$', OverviewList.as_view()),
-	url(r'^overview/(?P<pk>[0-9]+)$', OverviewDetails.as_view()),
-	url(r'^overview/(?P<date>\d{4}-\d{2}-\d{2})$', OverviewList.as_view()),
+	url(r'^diary$', DiaryList.as_view()),
+	url(r'^diary/(?P<pk>[0-9]+)$', DiaryDetails.as_view()),
+	url(r'^diary/(?P<date>\d{4}-\d{2}-\d{2})$', DiaryList.as_view()),
 
 	url(r'^sleep$', SleepList.as_view()),
 	url(r'^sleep/(?P<pk>[0-9]+)$', SleepDetails.as_view()),

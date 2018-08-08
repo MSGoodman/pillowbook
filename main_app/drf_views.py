@@ -25,30 +25,30 @@ class ModuleButtonDetails(generics.RetrieveUpdateDestroyAPIView):
 	serializer_class = ModuleButtonSerializer
 	def get_queryset(self): return ModuleButton.objects.filter(user=self.request.user)
 
-class OverviewList(generics.ListCreateAPIView):
+class DiaryList(generics.ListCreateAPIView):
 	permission_classes = (permissions.IsAuthenticated, )
-	serializer_class = OverviewSerializer
+	serializer_class = DiarySerializer
 
 	def get_queryset(self):  
 		this_date_string = self.kwargs.get('date')
 		if (this_date_string):
 			this_date = datetime.strptime(this_date_string, '%Y-%m-%d')
-			return Overview.objects.filter(date=this_date, user=self.request.user)
+			return Diary.objects.filter(date=this_date, user=self.request.user)
 		else:
-			return Overview.objects.filter(user=self.request.user)
+			return Diary.objects.filter(user=self.request.user)
 
 	def perform_create(self, serializer):
 		serializer.save(user = self.request.user)
 		return Response(serializer.data)
 
-class OverviewDetails(generics.RetrieveUpdateDestroyAPIView):
+class DiaryDetails(generics.RetrieveUpdateDestroyAPIView):
 	permission_classes = (permissions.IsAuthenticated, )
-	serializer_class = OverviewSerializer
-	def get_queryset(self): return Overview.objects.filter(user=self.request.user)
+	serializer_class = DiarySerializer
+	def get_queryset(self): return Diary.objects.filter(user=self.request.user)
 	
 	def perform_update(self, serializer):
 		sent_user = self.request.data['user']
-		item_user = Overview.objects.get(pk = self.request.data['id']).user.pk
+		item_user = Diary.objects.get(pk = self.request.data['id']).user.pk
 		if (sent_user != item_user): raise PermissionDenied
 		serializer.save()
 		return Response(serializer.data)
@@ -751,7 +751,7 @@ class LiteratureWishDetails(generics.RetrieveUpdateDestroyAPIView):
 class TodayDataFilled(APIView):
 	def get(self, request, format=None):
 		return Response({
-			'Overview': Overview.objects.filter(date=datetime.now().date()).count(),
+			'Diary': Diary.objects.filter(date=datetime.now().date()).count(),
 			'Sleep': Sleep.objects.filter(date=datetime.now().date()).count(),
 			'Weight': WeightExercise.objects.filter(date=datetime.now().date()).count(),
 			'Cardio': CardioExercise.objects.filter(date=datetime.now().date()).count(),

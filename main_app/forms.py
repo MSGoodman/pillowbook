@@ -1,9 +1,9 @@
 from django import forms
 from .models import *
 
-class OverviewForm(forms.ModelForm):
+class DiaryForm(forms.ModelForm):
     class Meta:
-        model = Overview
+        model = Diary
         fields = "__all__"
 
 class SleepForm(forms.ModelForm):

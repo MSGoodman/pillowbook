@@ -72,7 +72,7 @@
         });
         
         var moduleDescriptions = {
-            'Overview': 'An overview of your day',
+            'Diary': 'An overview of your day',
             'Sleep': 'How much sleep you get and when',
             'Weight': 'Weight-lifting recordkeeping',
             'Cardio': 'Keep track of your cardio exercise',
@@ -360,8 +360,8 @@
                 `
             });
 
-            // Overview
-            Vue.component('overview-item', {
+            // Diary
+            Vue.component('diary-item', {
                 mixins: [entryHandlingItemMixin],
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
@@ -387,22 +387,22 @@
 
                 </entry-item>`,
             });
-            overviewComponent = Vue.component('overview-page', {
+            diaryComponent = Vue.component('diary-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "overview", mandatoryFields: ['highlights', 'description'],} },
+                data: function() { return { endpoint: "diary", mandatoryFields: ['highlights', 'description'],} },
                 template:
                 `
                 <div>
-                    <h1>Overview</h1>
+                    <h1>Diary</h1>
 
                     <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
-                    <div id="overview-list" class="object-list">
-                        <overview-item v-for="item in sortedEntries"
+                    <div id="diary-list" class="object-list">
+                        <diary-item v-for="item in sortedEntries"
                         :entry="item"
                         :key="item.id"
                         :endpoint="endpoint">
-                        </overview-item>
+                        </diary-item>
                     </div>
                     
                     <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
@@ -2701,8 +2701,8 @@
                             <label><span><i class="fas fa-check"></i></span> <strong>[{ entry.name }]</strong> </label>
                         </div>
 
-                        <div class="module-description" v-html="getModuleDescription('Overview')">
-                            [{ getModuleDescription('Overview') }]
+                        <div class="module-description" v-html="getModuleDescription('Diary')">
+                            [{ getModuleDescription('Diary') }]
                         </div>
 
                     </template>
@@ -3349,7 +3349,7 @@
                 routes: [
                     {path: '/', component: indexComponent, meta: { title: "Home" } },
                     {path: '/login', component: loginComponent, meta: { title: "Login" } },
-                    {path: '/overview', component: overviewComponent, meta: { title: "Overview" } },
+                    {path: '/diary', component: diaryComponent, meta: { title: "Diary" } },
                     {path: '/sleep', component: sleepComponent, meta: { title: "Sleep" } },
                     {path: '/weight', component: weightComponent, meta: { title: "Weight" } },
                     {path: '/cardio', component: cardioComponent, meta: { title: "Cardio" } },

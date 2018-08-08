@@ -24,7 +24,7 @@ class BaseModel(models.Model):
         abstract = True
 
 # SUMMARY SECTION
-class Overview(BaseModel):
+class Diary(BaseModel):
     date = models.DateField(default=datetime.now)
     rating = models.DecimalField(validators=[MinValueValidator(0), MaxValueValidator(5)], default = 3, max_digits=2, decimal_places=1)
     highlights = models.TextField()
