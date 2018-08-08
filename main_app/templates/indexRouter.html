@@ -141,7 +141,7 @@
                 }
                 return entries;
             }
-
+            
             var entryHandlingItemMixin = {
                 data: function() { return { showOptions: false, deleted: false, updating: false, updated: false, hadChange: false } },
                 props: ['entry','endpoint'],
@@ -158,7 +158,16 @@
                     },
                     inputChanged: function(event) {
                         this.hadChange = true;
-                    }
+                    },
+                    textAreaTab: function(event){
+                        if (optionsStore.state.tabIndent){
+                            event.preventDefault();
+                            caretLocation = event.target.selectionStart;
+                            event.target.value = [event.target.value.slice(0, caretLocation), '\t', event.target.value.slice(caretLocation)].join('');
+                            event.target.focus();
+                            event.target.selectionEnd = caretLocation + 4;
+                        }
+                    },
                 }
             }
             var entryHandlingPageMixin = {
@@ -191,6 +200,15 @@
                                 this.showNewEntry = false;
                                 this.newEntry = {};
                             });
+                    },
+                    textAreaTab: function(event){
+                        if (optionsStore.state.tabIndent){
+                            event.preventDefault();
+                            caretLocation = event.target.selectionStart;
+                            event.target.value = [event.target.value.slice(0, caretLocation), '\t', event.target.value.slice(caretLocation)].join('');
+                            event.target.focus();
+                            event.target.selectionEnd = caretLocation + 4;
+                        }
                     },
                 },
                 computed: { 
@@ -379,7 +397,7 @@
                     
                         <label>Highlights: <input type="text" v-model="entry.highlights" @blur="updateEntry" @input="inputChanged()" /> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Description: <textarea v-model="entry.description" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+                        <label>Description: <textarea @keydown.tab="textAreaTab" v-model="entry.description" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
 
                     </template>
 
@@ -406,7 +424,7 @@
                     <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <div class="new-entry-datum"> <label>Highlights </label> <input type="text" v-model="newEntry.highlights" /> </div>
                         <div class="new-entry-datum"> <label>Rating </label><star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </div>
-                        <div class="new-entry-datum"> <label>Description </label> <textarea v-model="newEntry.description" /> </textarea> </div>
+                        <div class="new-entry-datum"> <label>Description </label> <textarea @keydown.tab="textAreaTab" v-model="newEntry.description" /> </textarea> </div>
                     </new-entry-form>
 
                 </div>
@@ -855,7 +873,7 @@
 
                     <template slot="details-section">
                         <label>Summary: <input type="text" v-model="entry.summary" @blur="updateEntry" @input="inputChanged()" /> </label>
-                        <div class="new-entry-datum"> <label> Review: </label><textarea v-model="entry.details" @blur="updateEntry" @input="inputChanged()" @keydown.tab="textAreaTab"> </textarea> </div>
+                        <div class="new-entry-datum"> <label> Review: </label><textarea @keydown.tab="textAreaTab" v-model="entry.details" @blur="updateEntry" @input="inputChanged()" @keydown.tab="textAreaTab"> </textarea> </div>
 
                     </template>
 
@@ -892,15 +910,6 @@
                             () => console.log('OOPS')
                         );
                     },
-                    textAreaTab: function(event){
-                        if (this.tabindent){
-                            event.preventDefault();
-                            caretLocation = event.target.selectionStart;
-                            event.target.value = [event.target.value.slice(0, caretLocation), '    ', event.target.value.slice(caretLocation)].join('');
-                            event.target.focus();
-                            event.target.selectionEnd = caretLocation + 4;
-                        }
-                    }
                 }
             });
             learningComponent = Vue.component('learning-page', {
@@ -923,7 +932,7 @@
                     
                     <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <div class="new-entry-datum"> <label> Summary: </label><input type="text" v-model="newEntry.summary" />  </div>
-                        <div class="new-entry-datum"> <label> Details: </label><textarea v-model="newEntry.details" /> </textarea>  </div>
+                        <div class="new-entry-datum"> <label> Details: </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.details" /> </textarea>  </div>
 
                     </new-entry-form>
 
@@ -1150,7 +1159,7 @@
                         </label>
                         <div class="new-entry-datum"> <label>  Waiting On: </label><input v-model="entry.waiting_on" @blur="updateEntry" @input="inputChanged()" />  </div>
                         <label> Due: </label> <input type="date" v-model="entry.due_date" @blur="updateEntry" @input="inputChanged()"></vuejs-datepicker>
-                        <div class="new-entry-datum"> <label>  Details: </label><textarea v-model="entry.details" @blur="updateEntry" @input="inputChanged()" @keydown.tab="textAreaTab" />  </div>
+                        <div class="new-entry-datum"> <label>  Details: </label><textarea v-model="entry.details" @blur="updateEntry" @input="inputChanged()" />  </div>
                         <div> <label>Duration:</label> [{ entry.duration }] </div>
 
                     </template>
@@ -1206,15 +1215,6 @@
                     },
                     getPursuitFromLoaded: function(id){ return this.pursuits.find(p => p.id === id); },
                     getProjectFromLoaded: function(id){ return this.projects.find(p => p.id === id); },
-                    textAreaTab: function(event){
-                        if (this.tabindent){
-                            event.preventDefault();
-                            caretLocation = event.target.selectionStart;
-                            event.target.value = [event.target.value.slice(0, caretLocation), '    ', event.target.value.slice(caretLocation)].join('');
-                            event.target.focus();
-                            event.target.selectionEnd = caretLocation + 4;
-                        }
-                    }
                 },
                 computed: {
                     todoPastDue: function(){
@@ -1469,7 +1469,7 @@
                             [{ entry.description }] 
                         </span>
 
-                        <textarea class="pursuit-details-entry" v-model="entry.description" v-on:blur="makeOrUpdateEntry" v-if="showOptions">
+                        <textarea @keydown.tab="textAreaTab"class="pursuit-details-entry" v-model="entry.description" v-on:blur="makeOrUpdateEntry" v-if="showOptions">
                         </textarea>
                     </div>
                     
@@ -1555,7 +1555,7 @@
                         <label>Type: <input type="text" v-model="entry.type" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label>Author: <input type="text" v-model="entry.author" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+                        <label>Review: <textarea @keydown.tab="textAreaTab" v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
 
                     </template>
                         
@@ -1586,7 +1586,7 @@
                         <div class="new-entry-datum"> <label> Author: </label><input type="text" v-model="newEntry.author"/>  </div>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <div class="new-entry-datum"> <label> Review: </label><textarea v-model="newEntry.review" /> </textarea>  </div>
+                        <div class="new-entry-datum"> <label> Review: </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.review" /> </textarea>  </div>
                     </new-entry-form>
                     
                     
@@ -1617,7 +1617,7 @@
                         <label>Title: <input type="text" v-model="entry.title" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label>Director: <input type="text" v-model="entry.director" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+                        <label>Review: <textarea @keydown.tab="textAreaTab" v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
 
                     </template>
 
@@ -1645,7 +1645,7 @@
                         <div class="new-entry-datum"> <label> Director: </label><input type="text" v-model="newEntry.director"/>  </div>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <div class="new-entry-datum"> <label> Review: </label><textarea v-model="newEntry.review" /> </textarea>  </div>
+                        <div class="new-entry-datum"> <label> Review: </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.review" /> </textarea>  </div>
 
                     </new-entry-form>
 
@@ -1679,7 +1679,7 @@
                         <label>Episode: <input type="text" v-model="entry.episode" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+                        <label>Review: <textarea @keydown.tab="textAreaTab" v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
 
                     </template>
 
@@ -1707,7 +1707,7 @@
                         <div class="new-entry-datum"> <label> Episode: </label><input type="text" v-model="newEntry.episode"/>  </div>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <div class="new-entry-datum"> <label> Review: </label><textarea v-model="newEntry.review" /> </textarea>  </div>
+                        <div class="new-entry-datum"> <label> Review: </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.review" /> </textarea>  </div>
 
                     </new-entry-form>
 
@@ -1738,7 +1738,7 @@
                         <label>Title: <input type="text" v-model="entry.title" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label>Creator: <input type="text" v-model="entry.creator" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+                        <label>Review: <textarea @keydown.tab="textAreaTab" v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
 
                     </template>
 
@@ -1766,7 +1766,7 @@
                         <div class="new-entry-datum"> <label> Creator: </label><input type="text" v-model="newEntry.creator"/>  </div>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <div class="new-entry-datum"> <label> Review: </label><textarea v-model="newEntry.review" /> </textarea>  </div>
+                        <div class="new-entry-datum"> <label> Review: </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.review" /> </textarea>  </div>
 
                     </new-entry-form>
 
@@ -1800,7 +1800,7 @@
                         <label>Console: <input type="text" v-model="entry.console" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label>Developer: <input type="text" v-model="entry.developer" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+                        <label>Review: <textarea @keydown.tab="textAreaTab" v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
 
                     </template>
 
@@ -1829,7 +1829,7 @@
                             <div class="new-entry-datum"> <label> Console: </label><input type="text" v-model="newEntry.console"/>  </div>
                             <div class="new-entry-datum"> <label> Developer: </label><input type="text" v-model="newEntry.developer"/>  </div>
                             <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                            <div class="new-entry-datum"> <label> Review: </label><textarea v-model="newEntry.review" /> </textarea>  </div>
+                            <div class="new-entry-datum"> <label> Review: </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.review" /> </textarea>  </div>
 
                         </new-entry-form>
 
@@ -1860,7 +1860,7 @@
                         <label>Title: <input type="text" v-model="entry.title" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label>Artist: <input type="text" v-model="entry.artist" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+                        <label>Review: <textarea @keydown.tab="textAreaTab" v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
 
                     </template>
                     
@@ -1888,7 +1888,7 @@
                         <div class="new-entry-datum"> <label> Artist: </label><input type="text" v-model="newEntry.artist"/>  </div>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <div class="new-entry-datum"> <label> Review: </label><textarea v-model="newEntry.review" /> </textarea>  </div>
+                        <div class="new-entry-datum"> <label> Review: </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.review" /> </textarea>  </div>
 
                     </new-entry-form>
 
@@ -1921,7 +1921,7 @@
                         <label>Episode: <input type="text" v-model="entry.episode" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+                        <label>Review: <textarea @keydown.tab="textAreaTab" v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
 
                     </template>
 
@@ -1949,7 +1949,7 @@
                         <div class="new-entry-datum"> <label> Episode: </label><input type="text" v-model="newEntry.episode"/>  </div>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <div class="new-entry-datum"> <label> Review: </label><textarea v-model="newEntry.review" /> </textarea>  </div>
+                        <div class="new-entry-datum"> <label> Review: </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.review" /> </textarea>  </div>
 
                     </new-entry-form>
 
@@ -1981,7 +1981,7 @@
                         <label>Brewery: <input type="text" v-model="entry.brewery" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+                        <label>Review: <textarea @keydown.tab="textAreaTab" v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
 
                     </template>
 
@@ -2009,7 +2009,7 @@
                         <div class="new-entry-datum"> <label> Brewery: </label><input type="text" v-model="newEntry.brewery"/>  </div>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <div class="new-entry-datum"> <label> Review: </label><textarea v-model="newEntry.review" /> </textarea>  </div>
+                        <div class="new-entry-datum"> <label> Review: </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.review" /> </textarea>  </div>
 
                     </new-entry-form>
 
@@ -2040,7 +2040,7 @@
                         <label>Name: <input type="text" v-model="entry.name" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label>Vineyard: <input type="text" v-model="entry.vineyard" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+                        <label>Review: <textarea @keydown.tab="textAreaTab" v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
 
                     </template>
 
@@ -2068,7 +2068,7 @@
                         <div class="new-entry-datum"> <label> Vineyard: </label><input type="text" v-model="newEntry.vineyard"/>  </div>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <div class="new-entry-datum"> <label> Review: </label><textarea v-model="newEntry.review" /> </textarea>  </div>
+                        <div class="new-entry-datum"> <label> Review: </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.review" /> </textarea>  </div>
 
                     </new-entry-form>
 
@@ -2098,7 +2098,7 @@
                         <label>Name: <input type="text" v-model="entry.name" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label>Vineyard: <input type="text" v-model="entry.vineyard" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+                        <label>Review: <textarea @keydown.tab="textAreaTab" v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
 
                     </template>
 
@@ -2125,7 +2125,7 @@
                         <div class="new-entry-datum"> <label> Name: </label><input type="text" v-model="newEntry.name" />  </div>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <div class="new-entry-datum"> <label> Review: </label><textarea v-model="newEntry.review" /> </textarea>  </div>
+                        <div class="new-entry-datum"> <label> Review: </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.review" /> </textarea>  </div>
 
                     </new-entry-form>
 
@@ -2323,7 +2323,7 @@
                         </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <label>Review: <textarea v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
+                        <label>Review: <textarea @keydown.tab="textAreaTab" v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
 
                     </template>
 
@@ -2360,7 +2360,7 @@
                         </label>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
-                        <div class="new-entry-datum"> <label> Review: </label><textarea v-model="newEntry.review" /> </textarea>  </div>
+                        <div class="new-entry-datum"> <label> Review: </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.review" /> </textarea>  </div>
 
                     </new-entry-form>
 
@@ -2797,7 +2797,7 @@
 
                     <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
                         <label>Name: <input v-model="entry.name" v-on:blur="updateEntry" /> </label>
-                        <textarea v-model="entry.description" v-on:blur="updateEntry"></textarea>
+                        <textarea @keydown.tab="textAreaTab" v-model="entry.description" v-on:blur="updateEntry"></textarea>
                         <label> Pursuit: 
                             <select v-model="entry.pursuit" v-on:change="updateEntry">
                                 <option v-for="pursuit in pursuits" :value="pursuit.id">
@@ -2847,7 +2847,7 @@
                     </div>
                     <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <div class="new-entry-datum"> <label> Name </label><input v-model="newEntry.name" width=25% />  </div>
-                        <div class="new-entry-datum"> <label> Description </label><textarea v-model="newEntry.description"></textarea>  </div>
+                        <div class="new-entry-datum"> <label> Description </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.description"></textarea>  </div>
                     </new-entry-form>
                     
                     
@@ -3227,7 +3227,7 @@
 
                     <div class="details-dropdown" v-bind:class="[{invisible: !showOptions}]"> 
                         <label>Name: <input v-model="entry.name" v-on:blur="updateEntry" /> </label>
-                        <label>Instructions: <textarea v-model="entry.details" v-on:blur="updateEntry" /> </label>
+                        <label>Instructions: <textarea @keydown.tab="textAreaTab" v-model="entry.details" v-on:blur="updateEntry" /> </label>
                         <h2> Ingredients </h2>
                         <div v-for="ingredient in entry.ingredients">
                             <recipeingredient :ingredient="ingredient" :fooditem="getFoodItemFromLoaded(ingredient.food_item)" :recipe="entry"> </recipeingredient> 
@@ -3290,7 +3290,7 @@
 
                     <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <div class="new-entry-datum"> <label> Name: </label><input v-model="newEntry.name" />  </div>
-                        <div class="new-entry-datum"> <label> Instructions: </label><textarea v-model="newEntry.details" /> </textarea> </div>
+                        <div class="new-entry-datum"> <label> Instructions: </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.details" /> </textarea> </div>
                     </new-entry-form>
                 </div>
                 `
