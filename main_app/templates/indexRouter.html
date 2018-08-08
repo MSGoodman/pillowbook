@@ -50,7 +50,7 @@
 <body>
     <script>
         const myAxios = axios.create({
-            baseURL: 'http://localhost:8000/api/', //'https://www.pillow-book.com/api/', // 'http://localhost:8000/api/', //
+            baseURL: 'https://www.pillow-book.com/api/', // 'http://localhost:8000/api/', //
             timeout: 1000,
             headers: {
                 'X-CSRFToken': Cookies.get('csrftoken')
@@ -61,16 +61,32 @@
         });
         
         var moduleDescriptions = {
-            'Overview': 'A diary entry of your day, consisting of the <b>highlights</b> for quick identification, a <b>rating</b>, and a <b>detailed entry</b>.',
-            'Sleep': 'This is a load of shit!',
-            'Weight': 'This is a load of shit!',
-            'Cardio': 'This is a load of shit!',
-            'Toilet': 'This is a load of shit!',
-            'Sex': 'This is a load of shit!',
-            'Period': 'This is a load of shit!',
-            'Learning': 'This is a load of shit!',
-            'Money': 'This is a load of shit!',
-            'Study': 'This is a load of shit!',
+            'Overview': 'An overview of your day',
+            'Sleep': 'How much sleep you get and when',
+            'Weight': 'Weight-lifting recordkeeping',
+            'Cardio': 'Keep track of your cardio exercise',
+            'Toilet': 'Records about your bathroom usage',
+            'Sex': 'Information about your sex life',
+            'Period': 'When you get your period',
+            'Learning': 'Things you\'ve learned',
+            'Money': 'Your expenditures and profits',
+            'Study': 'Results of quizzes you take',
+            'ToDo': 'Results of quizzes you take',
+            'Literature': 'Books you\'ve read',
+            'Film': 'Movies you\'ve watched',
+            'Television': 'Television you\'ve watched',
+            'Board Games': 'Board games you\'ve played',
+            'Video Games': 'Video games you\'ve played',
+            'Music': 'Music you\'ve listened to',
+            'Podcast': 'Podcasts you\'ve listened to',
+            'Beer': 'Beer you\'ve drank',
+            'Wine': 'Wine you\'ve drank',
+            'Cheese': 'Cheese you\'ve eaten',
+            'Pursuit Progress': 'Progress towards your goals',
+            'Cooking': 'Meals you cook',
+            'Groceries': 'Food you buy',
+            'Meals': 'What you eat',
+            'Travel': 'Places you\'ve gone',
         };
 
         var map;
@@ -2663,7 +2679,7 @@
 
                         <div class="custom-checkbox-container" @click="entry.display = !entry.display; updateEntry();">
                             <input type="checkbox" v-model="entry.display" @change="updateEntry" />
-                            <label><span></span> [{ entry.name }] </label>
+                            <label><span><i class="fas fa-check"></i></span> <strong>[{ entry.name }]</strong> </label>
                         </div>
 
                         <div class="module-description" v-html="getModuleDescription('Overview')">
@@ -2674,11 +2690,15 @@
 
                     <template slot="details-section">
 
-                        <label>Section: <input v-model="entry.category"@blur="updateEntry" @input="inputChanged()" /> </label>
-                        <label>Color: <input v-model="entry.background_color" @blur="updateEntry" @input="inputChanged()" /> </label>
-                        <label>Color (Complete): <input v-model="entry.background_color_complete" @blur="updateEntry" @input="inputChanged()" /> </label>
-                        <label class="inline-label"> <input type="radio" v-model="entry.icon_source" value="UN" @change="inputChanged();updateEntry();"> Unicode </label> <input v-model="entry.icon_unicode" v-on:blur="updateEntry" size="3"/>
-                        <label class="inline-label">  <input type="radio" v-model="entry.icon_source" value="FA" @change="inputChanged();updateEntry();"> FontAwesome </label> <input v-model="entry.icon_font_awesome" v-on:blur="updateEntry" /> 
+                        <div class="new-entry-datum"> <label>Section: </label> <input v-model="entry.category"@blur="updateEntry" @input="inputChanged()" /> </div>
+                        <div class="new-entry-datum"> <label>Color: </label>  <input v-model="entry.background_color" @blur="updateEntry" @input="inputChanged()" /> </div>
+                        <div class="new-entry-datum" v-if="false"> <label>Color (Complete): </label> <input v-model="entry.background_color_complete" @blur="updateEntry" @input="inputChanged()" /> </div>
+                        <div class="new-entry-datum"> 
+                            <label> <input class="not-full-width" type="radio" v-model="entry.icon_source" value="UN" @change="inputChanged();updateEntry();"> Unicode </label> 
+                            <input v-model="entry.icon_unicode" v-on:blur="updateEntry" size="3"/>  
+                            <label> <input class="not-full-width" type="radio" v-model="entry.icon_source" value="FA" @change="inputChanged();updateEntry();"> FontAwesome </label> 
+                            <input v-model="entry.icon_font_awesome" v-on:blur="updateEntry" /> 
+                        </div>
 
                     </template>
 

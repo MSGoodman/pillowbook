@@ -15,24 +15,24 @@
         font-size: 1em;
     }
 
-    textarea, input, select {
+    textarea, input:not(.not-full-width), select {
         width: 100%;
     }
 }
 
 // Custom checkbox
 .custom-checkbox-container {
-    display: block;
-    position: relative;
-    padding-left: 35px;
-    margin-bottom: 12px;
     cursor: pointer;
-    font-size: 22px;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    
+    strong {
+        font-size: 1.2em;
+    }
 }
+
 .module-entry {
     text-align: center;
 }
