@@ -1159,7 +1159,7 @@
                         </label>
                         <div class="new-entry-datum"> <label>  Waiting On: </label><input v-model="entry.waiting_on" @blur="updateEntry" @input="inputChanged()" />  </div>
                         <label> Due: </label> <input type="date" v-model="entry.due_date" @blur="updateEntry" @input="inputChanged()"></vuejs-datepicker>
-                        <div class="new-entry-datum"> <label>  Details: </label><textarea v-model="entry.details" @blur="updateEntry" @input="inputChanged()" />  </div>
+                        <div class="new-entry-datum"> <label>  Details: </label><textarea @keydown.tab="textAreaTab" v-model="entry.details" @blur="updateEntry" @input="inputChanged()" />  </div>
                         <div> <label>Duration:</label> [{ entry.duration }] </div>
 
                     </template>
@@ -1469,7 +1469,7 @@
                             [{ entry.description }] 
                         </span>
 
-                        <textarea @keydown.tab="textAreaTab"class="pursuit-details-entry" v-model="entry.description" v-on:blur="makeOrUpdateEntry" v-if="showOptions">
+                        <textarea @keydown.tab="textAreaTab" class="pursuit-details-entry" v-model="entry.description" v-on:blur="makeOrUpdateEntry" v-if="showOptions">
                         </textarea>
                     </div>
                     
