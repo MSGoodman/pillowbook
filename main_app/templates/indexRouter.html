@@ -59,6 +59,17 @@
             'Accept': 'application/json, text/plain, */*',
             'Content-Type': 'application/json',
         });
+
+        const lesserAxios = axios.create({
+            baseURL: 'https://www.pillow-book.com/', // 'http://localhost:8000/', //
+            timeout: 1000,
+            headers: {
+                'X-CSRFToken': Cookies.get('csrftoken')
+            },
+            credentials: "include",
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/json',
+        });
         
         var moduleDescriptions = {
             'Overview': 'An overview of your day',
@@ -2707,17 +2718,39 @@
             });
             moduleComponent = Vue.component('module-page', {
                 mixins: [entryHandlingPageMixin],
-                data: function() { return { endpoint: "modules", noMixinMounted: true, } },
+                data: function() { return { endpoint: "modules", noMixinMounted: true, user: {}} },
                 mounted: function() {
                     myAxios.get(this.endpoint).then(response => this.entries = convertRatings(response.data));
-                },
-                methods: {
-                    getModuleByName: function(name) { return _.find(this.entries, function(t) { console.log(name); t.name === name; }); } 
+                    lesserAxios.get('user').then(response => { 
+                        if(!response.data.seen_intro) {
+                            $('#intro-modal').modal(); 
+                        } 
+                    });
                 },
                 template:
                 `
                 <div id="app">
-                    <div>[{ getModuleByName('Overview') }]</div>
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="intro-modal" tabindex="-1" role="dialog" aria-labelledby="introModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="introModalLabel">Welcome to PillowBook!</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                In order to get started, please select which features you'd like to have access to. You can always change this later from this menu.
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="module-list" class="object-list">
                         <module v-for="item in sortedEntries"
                         :entry="item"

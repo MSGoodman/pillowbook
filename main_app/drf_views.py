@@ -18,9 +18,6 @@ class ModuleButtonList(generics.ListCreateAPIView):
 	serializer_class = ModuleButtonSerializer
 	
 	def get_queryset(self):
-		print("TEST")
-		print(self.request)
-		print(self.request.user)
 		return ModuleButton.objects.filter(user=self.request.user)
 
 class ModuleButtonDetails(generics.RetrieveUpdateDestroyAPIView):
@@ -305,7 +302,6 @@ class ToDoList(generics.ListCreateAPIView):
 		this_date_string = self.kwargs.get('date')
 		if (this_date_string):
 			this_date = datetime.strptime(this_date_string, '%Y-%m-%d')
-			print(this_date.date())
 			todo_q = Q(create_time__date__lte = this_date.date()) & (Q(finish_time__date__gte = this_date.date()) | Q(finish_time__isnull=True)) & Q(user=self.request.user)
 			todos = ToDo.objects.filter(create_time__date__lte = this_date.date(), finish_time__date__gte = this_date.date())
 			return ToDo.objects.filter(todo_q) # ToDo.objects.filter(date=this_date, user=self.request.user) # 

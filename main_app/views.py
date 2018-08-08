@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template import loader
 from .forms import *
 from datetime import timedelta, datetime
@@ -15,6 +15,15 @@ from django.utils.crypto import get_random_string
 from django.core import serializers
 
 from .models import *
+
+def user(request):
+    if request.user.seen_intro:
+        return JsonResponse({'seen_intro':True})
+    else:
+        u = request.user
+        u.seen_intro = True
+        u.save()
+        return JsonResponse({'seen_intro':False})
 
 def app_activate(request, key):
     activation_expired = False

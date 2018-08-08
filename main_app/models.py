@@ -15,6 +15,7 @@ class User(AbstractEmailUser):
     github_username = models.TextField(blank=True, null=True)
     activation_key = models.CharField(max_length=40, default='no_activation_key')
     key_expires = models.DateTimeField(default=datetime.now)
+    seen_intro = models.BooleanField(default=False)
 
 class BaseModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
