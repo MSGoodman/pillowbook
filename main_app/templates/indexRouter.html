@@ -184,9 +184,7 @@
                 },
                 methods: {
                     createNewEntry: function() {
-                        console.log(JSON.stringify(this.newEntry));
                         this.newEntry['date'] = dateToString(this.date);
-                        console.log(JSON.stringify(this.newEntry));
                         myAxios.post(this.endpoint, this.newEntry)
                             .then(response => {
                                 this.entries.push(convertRatings(response.data)); 
@@ -501,7 +499,10 @@
             weightComponent = Vue.component('weight-page', {
                 mixins: [entryHandlingPageMixin],
                 data: function() { return { endpoint: "weight", weightTypes: [], mandatoryFields: ['type', 'start_time', 'end_time', 'weight', 'reps'],} },
-                computed: { sortedEntries: function(){ return _.orderBy(this.entries, ['start_time']); }, },
+                computed: { 
+                    sortedEntries: function(){ return _.orderBy(this.entries, ['start_time']); }, 
+                    thisEntryDisabled: function() { if(!this.weightTypes.length) { return true; } else { return this.newEntryDisabled; } }
+                    },
                 methods: {
                     getAllWeightTypes: function() {
                         myAxios.get("weightTypes")
@@ -525,13 +526,14 @@
                     </div>
                     
                     <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
-                        <label> Exercise: 
+                        <div class="new-entry-datum">
+                        <label> Exercise </label>  <span class="input-warning" v-if="weightTypes.length === 0"><i class="fas fa-exclamation-triangle"></i> Please create a new weight exercise by clicking <a href="#/weightexercises">here</a></span> 
                             <select v-model="newEntry.type">
                                 <option v-for="exercise in weightTypes" :value="exercise.id">
                                     [{ exercise.name }]
                                 </option>
                             </select>
-                        </label>
+                        </div>
 
                         <div class="new-entry-datum"> <label> Weight: </label><input type="number" v-model="newEntry.weight" />  </div>
                         <div class="new-entry-datum"> <label> Reps: </label><input type="number" v-model="newEntry.reps" />  </div>
@@ -575,7 +577,10 @@
             cardioComponent = Vue.component('cardio-page', {
                 mixins: [entryHandlingPageMixin],
                 data: function() { return { endpoint: "cardio", cardioTypes: [], mandatoryFields: ['start_time', 'end_time'],} },
-                computed: { sortedEntries: function(){ return _.orderBy(this.entries, ['start_time']); }, },
+                computed: { 
+                    sortedEntries: function(){ return _.orderBy(this.entries, ['start_time']); }, 
+                    thisEntryDisabled: function() { if(!this.cardioTypes.length) { return true; } else { return this.newEntryDisabled; } }
+                },
                 mounted: function() { this.getAllCardioTypes(); },
                 methods: {
                     getAllCardioTypes: function() {
@@ -598,14 +603,15 @@
                         </cardio-item>
                     </div>
                     
-                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
-                        <label> Exercise: 
+                    <new-entry-form :newEntryDisabled="thisEntryDisabled" @newEntryClicked="createNewEntry">
+                        <div class="new-entry-datum">
+                        <label> Exercise </label>  <span class="input-warning" v-if="cardioTypes.length === 0"><i class="fas fa-exclamation-triangle"></i> Please create a new cardio exercise by clicking <a href="#/cardioexercises">here</a></span> 
                             <select v-model="newEntry.type">
                                 <option v-for="exercise in cardioTypes" :value="exercise.id">
                                     [{ exercise.name }]
                                 </option>
                             </select>
-                        </label>
+                        </div>
                         <div class="new-entry-datum"> <label> Calories Burned: </label><input type="number" v-model="newEntry.calories_burned" />  </div>
                         <div class="new-entry-datum"> <label> Time Started: </label><input type="time" v-model="newEntry.start_time" />  </div>
                         <div class="new-entry-datum"> <label> Time Ended: </label><input type="time" v-model="newEntry.end_time" />  </div>
@@ -3473,8 +3479,8 @@
                                     <router-link to="/projects"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('projects')">  <span> Projects &#128193; </span> </a>  </router-link>
                                     <router-link to="/quizzes"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('quizzes')"><span> Quizzes &#127822; </span> </a> </router-link>
                                     <router-link to="/pursuits"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('pursuits')"><span> Pursuits &#128209; </span> </a> </router-link>
-                                    <router-link to="/cardio"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('cardio')"><span> Cardio 🏃 </span> </a> </router-link>
-                                    <router-link to="/weight"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('weight')"><span> Weight 💪 </span> </a> </router-link>
+                                    <router-link to="/cardioexercises"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('cardio')"><span> Cardio 🏃 </span> </a> </router-link>
+                                    <router-link to="/weightexercises"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('weight')"><span> Weight 💪 </span> </a> </router-link>
                                     <router-link to="/fooditems"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('fooditems')"><span> Foods 🍔 </span> </a> </router-link>
                                     <router-link to="/recipe"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('recipes')"><span> Recipe 🍲 </span> </a> </router-link>
                                     <router-link to="/filmsToWatch"> <a class="dropdown-item" href="#" v-if="showSideButtons.includes('filmsToWatch')"><span> To Watch 🎥 </span> </a> </router-link>
