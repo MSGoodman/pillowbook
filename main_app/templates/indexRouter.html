@@ -221,7 +221,7 @@
             
             // Page Components
             Vue.component('new-entry-form', {
-                props: ['newEntryDisabled'],
+                props: ['newEntryDisabled', 'hideNewButton'],
                 methods: {
                     clicked: function(event){
                         event.preventDefault()
@@ -234,7 +234,7 @@
                 <div>
                     <form class="new-entry-form">
                         <slot></slot>
-                        <button class="btn btn-primary btn-block" @click="clicked($event)" :disabled="newEntryDisabled" :class="{ disabled: newEntryDisabled }"> Create New </button>
+                        <button v-if="!hideNewButton" class="btn btn-primary btn-block" @click="clicked($event)" :disabled="newEntryDisabled" :class="{ disabled: newEntryDisabled }"> Create New </button>
                     </form>
                 </div>
                 `
@@ -800,23 +800,31 @@
             periodComponent = Vue.component('period-page', {
                 mixins: [entryHandlingPageMixin],
                 data: function() { return { endpoint: "period", mandatoryFields: ['period'],} },
+                methods: {
+                    enterPeriod :function() {
+                        this.newEntry.period = true;
+                        this.createNewEntry();
+                        return false;
+                    },
+                    removePeriod :function() {
+                        myAxios.delete(this.endpoint + "/" + this.entries[0].id);
+                        this.entries.pop(0);
+                        return false;
+                    },
+                },
                 template:
                 `
                 <div>
                     <h1>Period</h1>
                     <label> Date: </label><vuejs-datepicker v-model="date" wrapper-class="datepicker-wrapper" calendar-class="datepicker-calendar" input-class="datepicker-wrapper" @selected=""></vuejs-datepicker>
 
-                    <div id="period-list" class="object-list">
-                        <period-item v-for="item in sortedEntries"
-                        :entry="item"
-                        :key="item.id"
-                        :endpoint="endpoint">
-                        </period-item>
+                    <div id="period-list" class="object-list" v-if="entries.length">
+                        <i class="fas fa-check"></i>
                     </div>
                     
-                    <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
-                        <label>Period: <input type="checkbox" v-model="newEntry.period"> 
-                        
+                    <new-entry-form :hideNewButton="true">
+                        <button class="btn btn-primary btn-block" @click="enterPeriod" v-if="entries.length === 0" > Enter </button>
+                        <button class="btn btn-danger btn-block" @click="removePeriod" v-if="entries.length > 0" > Remove </button>
                     </new-entry-form>
 
                 </div>
