@@ -95,6 +95,8 @@ class Toilet(BaseModel):
 
 class Sex(BaseModel):
     date = models.DateField(default=datetime.now)
+    start_time = models.TimeField(blank = True, null = True)
+    end_time = models.TimeField(blank = True, null = True)
     type = models.TextField()
 
 class Period(BaseModel):

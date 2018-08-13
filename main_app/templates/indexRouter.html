@@ -775,13 +775,16 @@
                     
                     <template slot="display-section">
                         
-                        <div class="sex-name item-body-element"> [{ entry.type }] </div>
+                        <div class="sex-name item-body-element"> [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] <b> [{ entry.type }] </b> </div>
+                        
 
                     </template>
 
                     <template slot="details-section">
-
+                        
                         <label>Type: <input type="text" v-model="entry.type" @blur="updateEntry" @input="inputChanged()" /> </label>
+                        <label>Time Started: <input type="time" v-model="entry.start_time" @blur="updateEntry" @input="inputChanged()"  /> </label>
+                        <label>Time Ended: <input type="time" v-model="entry.end_time" @blur="updateEntry" @input="inputChanged()"  /> </label>
 
                     </template>
                 </entry-item>`,
@@ -805,7 +808,9 @@
                     
                     <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <div class="new-entry-datum"> <label> Type: </label><input type="text" v-model="newEntry.type" />  </div>
-                        
+                        <div class="new-entry-datum"> <label> Time Started: </label><input type="time" v-model="newEntry.start_time" />  </div>
+                        <div class="new-entry-datum"> <label> Time Ended: </label><input type="time" v-model="newEntry.end_time" />  </div>
+
                     </new-entry-form>
 
                 </div>
