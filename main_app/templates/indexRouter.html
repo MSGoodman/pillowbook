@@ -1676,7 +1676,7 @@
                     <template slot="display-section">
                         
                         <div class="television-series item-body-element"> [{ entry.series }] 
-                        <span class="television-series item-top-detail"> [{ entry.episode }] </span>
+                        <span class="television-series item-top-detail">  <span v-if="entry.season_num">S[{ entry.season_num }]</span><span v-if="entry.episode_num">E[{ entry.episode_num }]</span><span v-if="entry.episode_num || entry.season_num">: </span>[{ entry.episode }] </span>
                         <span class="television-series item-top-detail"> <star-rating v-model="entry.rating" :star-size="15" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" :inline="true" :read-only="true" />  </span>
                         </div>
@@ -1688,7 +1688,9 @@
                     <template slot="details-section">
 
                         <label>Series: <input type="text" v-model="entry.series" @blur="updateEntry" @input="inputChanged()"/> </label>
-                        <label>Episode: <input type="text" v-model="entry.episode" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Season #: <input type="text" v-model="entry.season_num" @blur="updateEntry" @input="inputChanged()" maxlength="2" placeholder="#" /> </label>
+                        <label>Episode #: <input type="text" v-model="entry.episode_num" @blur="updateEntry" @input="inputChanged()" maxlength="2" placeholder="#"/> </label>
+                        <label>Episode Title: <input type="text" v-model="entry.episode" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
                         <label>Review: <textarea @keydown.tab="textAreaTab" v-model="entry.review" @blur="updateEntry" @input="inputChanged()"> </textarea></label>
@@ -1716,7 +1718,9 @@
                     
                     <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <div class="new-entry-datum"> <label> Series: </label><input type="text" v-model="newEntry.series" />  </div>
-                        <div class="new-entry-datum"> <label> Episode: </label><input type="text" v-model="newEntry.episode"/>  </div>
+                        <div class="new-entry-datum"> <label> Season #: </label><input type="text" v-model="newEntry.season_num" maxlength="2" placeholder="#"/>  </div>
+                        <div class="new-entry-datum"> <label> Episode #: </label><input type="text" v-model="newEntry.episode_num" maxlength="2" placeholder="#"/>  </div>
+                        <div class="new-entry-datum"> <label> Episode Title: </label><input type="text" v-model="newEntry.episode"/>  </div>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
                             inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
                         <div class="new-entry-datum"> <label> Review: </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.review" /> </textarea>  </div>

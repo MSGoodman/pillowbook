@@ -217,6 +217,8 @@ class Television(BaseModel):
     date = models.DateField(default=datetime.now)
     series = models.TextField()
     episode = models.TextField()
+    season_num = models.CharField(max_length=2, blank = True, null = True)
+    episode_num = models.CharField(max_length=2, blank = True, null = True)
     rating = models.DecimalField(validators=[MinValueValidator(0), MaxValueValidator(5)], default = 3, max_digits=2, decimal_places=1)
     review = models.TextField(blank = True, null = True)
 
