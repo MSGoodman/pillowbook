@@ -195,11 +195,11 @@ class Quiz(BaseModel):
 class Literature(BaseModel):
     date = models.DateField(default=datetime.now)
     title = models.TextField()
-    author = models.TextField()
-    up_to_page = models.IntegerField()
+    author = models.TextField(blank=True, null=True)
+    up_to_page = models.IntegerField(blank=True, null=True)
     rating = models.DecimalField(validators=[MinValueValidator(0), MaxValueValidator(5)], default = 3, max_digits=2, decimal_places=1)
     review = models.TextField(blank = True, null = True)
-    type = models.TextField()
+    type = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.title
