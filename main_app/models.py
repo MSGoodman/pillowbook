@@ -169,6 +169,7 @@ class Learning(BaseModel):
     date = models.DateField(default=datetime.now)
     summary = models.TextField()
     details = models.TextField()
+    urls = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.summary

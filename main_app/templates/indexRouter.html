@@ -887,12 +887,18 @@
             Vue.component('learning-item', {
                 mixins: [entryHandlingItemMixin],
                 props: ['tabindent'],
+                mounted: function() { 
+                    if (!this.entry.urls.startsWith('http://') && !this.entry.urls.startsWith('https://')) {
+                        this.entry.urls = 'http://' + this.entry.urls
+                    } 
+                },
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
                     
                     <template slot="display-section">
                         
                         <div class="learning-name item-body-element"> <strong>[{ entry.summary }]</strong>
+                        <a class="learning-url" :href="entry.urls">[{ entry.urls }]</a>
                         </div>
                         
                         <div class="learning-review review-text">[{ entry.details }]</div>
@@ -901,7 +907,8 @@
 
                     <template slot="details-section">
                         <label>Summary: <input type="text" v-model="entry.summary" @blur="updateEntry" @input="inputChanged()" /> </label>
-                        <div class="new-entry-datum"> <label> Review: </label><textarea @keydown.tab="textAreaTab" v-model="entry.details" @blur="updateEntry" @input="inputChanged()" @keydown.tab="textAreaTab"> </textarea> </div>
+                        <label>URL: <input type="text" v-model="entry.urls" @blur="updateEntry" @input="inputChanged()" /> </label>
+                        <div class="new-entry-datum"> <label> Review: </label><textarea v-model="entry.details" @blur="updateEntry" @input="inputChanged()" @keydown.tab="textAreaTab"> </textarea> </div>
 
                     </template>
 
@@ -960,6 +967,7 @@
                     
                     <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <div class="new-entry-datum"> <label> Summary: </label><input type="text" v-model="newEntry.summary" />  </div>
+                        <div class="new-entry-datum"> <label> URL: </label><input type="text" v-model="newEntry.urls" />  </div>
                         <div class="new-entry-datum"> <label> Details: </label><textarea @keydown.tab="textAreaTab" v-model="newEntry.details" /> </textarea>  </div>
 
                     </new-entry-form>
