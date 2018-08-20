@@ -661,11 +661,16 @@
                                 this.inputChanged();
                                 this.updateEntry();
                             }
-                        }
+                        },
                     });
                     
                     $($(this)[0].$el).find('.dd-container').ddslick('select', {index: this.entry.bristol - 1 });
-
+                },
+                methods: {
+                    stopNow: function() {
+                        this.entry.end_time = moment().format('HH:mm');
+                        this.updateEntry();
+                    },
                 },
                 template: 
                 `<entry-item :deleted="deleted" :updating="updating" :updated="updated" @deleteEntry="deleteEntry">
@@ -673,7 +678,9 @@
                     <template slot="display-section">
                         
                         <div class="item-body-element">
-                            [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] <b>([{ entry.bristol}] <img v-bind:src="bristolImageSrc" class="bristol-image" />)</b>
+                            [{ entry.start_time | formatTime }] - [{ entry.end_time | formatTime}] 
+                            <b v-if="entry.bristol && entry.bristol != 'null'">([{ entry.bristol}] <img v-bind:src="bristolImageSrc" class="bristol-image" />)</b>
+                            <button v-if="!entry.end_time" class="btn btn-danger" @click="stopNow()"> Finish <i class="fas fa-stop"></i></button>
                         </div>
                         
                     </template>
@@ -684,6 +691,7 @@
                         <label>Time Ended: <input type="time" v-model="entry.end_time" @blur="updateEntry" @input="inputChanged()"  /> </label>
                         
                         <select class="bristol-dropdown" style="margin:0 auto;" >
+                            <option value="null" data-description="Please select">N/A</option>
                             <option value="1" data-imagesrc="{% static "img/bristol1.png" %}" data-description="Separate hard lumps">Type 1</option>
                             <option value="2" data-imagesrc="{% static "img/bristol2.png" %}" data-description="Sausage-shaped but lumpy">Type 2</option>
                             <option value="3" data-imagesrc="{% static "img/bristol3.png" %}" data-description="Like a sausage but with cracks on its surface">Type 3</option>
@@ -710,6 +718,13 @@
                     bristolImageSrc: function() {
                         var imgName = "bristol" + this.newEntry.bristol + ".png";
                         return `{% static imgName %}` + imgName
+                    },
+                },
+                methods: {
+                    startNow: function(event) {
+                        event.preventDefault();
+                        this.newEntry.start_time = moment().format('HH:mm');
+                        this.createNewEntry();
                     },
                 },
                 mounted: function() { 
@@ -751,6 +766,7 @@
                             <label> Bristol: </label>
                         
                             <select class="bristol-dropdown" style="margin:0 auto;" >
+                                <option value="null" data-description="Please select">N/A</option>
                                 <option value="1" data-imagesrc="{% static "img/bristol1.png" %}" data-description="Separate hard lumps">Type 1</option>
                                 <option value="2" data-imagesrc="{% static "img/bristol2.png" %}" data-description="Sausage-shaped but lumpy">Type 2</option>
                                 <option value="3" data-imagesrc="{% static "img/bristol3.png" %}" data-description="Like a sausage but with cracks on its surface">Type 3</option>
@@ -759,8 +775,8 @@
                                 <option value="6" data-imagesrc="{% static "img/bristol6.png" %}" data-description="Fluffy pieces with ragged edges">Type 6</option>
                                 <option value="7" data-imagesrc="{% static "img/bristol7.png" %}" data-description="Watery, no solid pieces">Type 7</option>
                             </select>
-
                         </div>
+                        <button class="btn btn-success btn-block" @click="startNow($event)"> Start Now <i class="fas fa-play"></i></button>
                     </new-entry-form>
 
                 </div>

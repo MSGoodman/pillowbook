@@ -90,8 +90,8 @@ class Food(BaseModel):
 class Toilet(BaseModel):
     date = models.DateField(default=datetime.now)
     start_time = models.TimeField()
-    end_time = models.TimeField()
-    bristol = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(7)], default = 4)
+    end_time = models.TimeField(blank = True, null = True)
+    bristol = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(7)], blank = True, null = True)
 
 class Sex(BaseModel):
     date = models.DateField(default=datetime.now)
