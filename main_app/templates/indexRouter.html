@@ -1574,6 +1574,10 @@
                     
                         <div class="literature-title item-body-element"> 
                             [{ entry.title }] 
+                            <span class="literature-type item-top-detail" v-if="entry.up_to_page || entry.up_to_chapter"> to 
+                                <span v-if="entry.up_to_chapter">Ch [{ entry.up_to_chapter }] </span>
+                                <span v-if="entry.up_to_page">Pg [{ entry.up_to_page }] </span>
+                            </span>
                             <span class="literature-type item-top-detail"> [{ entry.type }] </span>
                             <span class="literature-title item-top-detail"> [{ entry.author }] </span>
                             <span class="literature-title item-top-detail"> <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="15" :increment="0.5" 
@@ -1588,6 +1592,7 @@
 
                         <label>Title: <input type="text" v-model="entry.title" @blur="updateEntry" @input="inputChanged()"  /> </label>
                         <label>Up To Page: <input type="number" v-model="entry.up_to_page" @blur="updateEntry" @input="inputChanged()"/> </label>
+                        <label>Up To Chapter: <input type="number" v-model="entry.up_to_chapter" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label>Type: <input type="text" v-model="entry.type" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label>Author: <input type="text" v-model="entry.author" @blur="updateEntry" @input="inputChanged()"/> </label>
                         <label class="inline-label">Rating: <star-rating v-model="entry.rating" @rating-selected="inputChanged(); updateEntry()" :star-size="25" :increment="0.5" inactive-color="#b7b7b7" active-color="#232323" :show-rating="false" /> </label>
@@ -1618,6 +1623,7 @@
                     <new-entry-form :newEntryDisabled="newEntryDisabled" @newEntryClicked="createNewEntry">
                         <div class="new-entry-datum"> <label> Title: </label><input type="text" v-model="newEntry.title" />  </div>
                         <div class="new-entry-datum"> <label> Up To Page: </label><input type="number" v-model="newEntry.up_to_page" />  </div>
+                        <div class="new-entry-datum"> <label> Up To Chapter: </label><input type="number" v-model="newEntry.up_to_chapter" />  </div>
                         <div class="new-entry-datum"> <label> Type: </label><input type="text" v-model="newEntry.type"/>  </div>
                         <div class="new-entry-datum"> <label> Author: </label><input type="text" v-model="newEntry.author"/>  </div>
                         <label class="inline-label">Rating: <star-rating v-model="newEntry.rating" :star-size="25" :increment="0.5" 
