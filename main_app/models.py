@@ -41,10 +41,10 @@ class Sleep(BaseModel):
 
 class WeightExercise(BaseModel):
     date = models.DateField(default=datetime.now)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
-    weight = models.IntegerField()
-    reps = models.IntegerField()
+    start_time = models.TimeField(blank=True, null=True)
+    end_time = models.TimeField(blank=True, null=True)
+    weight = models.IntegerField(blank=True, null=True)
+    reps = models.IntegerField(blank=True, null=True)
     calories_burned = models.IntegerField(blank=True, null=True)
     type = models.ForeignKey('WeightExerciseType', on_delete=models.CASCADE)
 
@@ -54,8 +54,8 @@ class WeightExercise(BaseModel):
 
 class CardioExercise(BaseModel):
     date = models.DateField(default=datetime.now)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    start_time = models.TimeField(blank=True, null=True)
+    end_time = models.TimeField(blank=True, null=True)
     calories_burned = models.IntegerField(blank=True, null=True)
     type = models.ForeignKey('CardioExerciseType', on_delete=models.CASCADE)
 
@@ -151,7 +151,7 @@ class Pursuit(BaseModel):
 class PursuitProgress(BaseModel):
     date = models.DateField(default=datetime.now)
     pursuit = models.ForeignKey('Pursuit', on_delete=models.CASCADE)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.pursuit.icon + ' ' + self.description
@@ -168,7 +168,7 @@ class Project(BaseModel):
 class Learning(BaseModel):
     date = models.DateField(default=datetime.now)
     summary = models.TextField()
-    details = models.TextField()
+    details = models.TextField(blank=True, null=True)
     urls = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -208,7 +208,7 @@ class Literature(BaseModel):
 class Film(BaseModel):
     date = models.DateField(default=datetime.now)
     title = models.TextField()
-    director = models.TextField()
+    director = models.TextField(blank=True, null=True)
     rating = models.DecimalField(validators=[MinValueValidator(0), MaxValueValidator(5)], default = 3, max_digits=2, decimal_places=1)
     review = models.TextField(blank = True, null = True)
 
@@ -218,7 +218,7 @@ class Film(BaseModel):
 class Television(BaseModel):
     date = models.DateField(default=datetime.now)
     series = models.TextField()
-    episode = models.TextField()
+    episode = models.TextField(blank=True, null=True)
     season_num = models.CharField(max_length=2, blank = True, null = True)
     episode_num = models.CharField(max_length=2, blank = True, null = True)
     rating = models.DecimalField(validators=[MinValueValidator(0), MaxValueValidator(5)], default = 3, max_digits=2, decimal_places=1)
@@ -230,8 +230,8 @@ class Television(BaseModel):
 class VideoGame(BaseModel):
     date = models.DateField(default=datetime.now)
     title = models.TextField()
-    console = models.TextField()
-    developer = models.TextField()
+    console = models.TextField(blank=True, null=True)
+    developer = models.TextField(blank=True, null=True)
     rating = models.DecimalField(validators=[MinValueValidator(0), MaxValueValidator(5)], default = 3, max_digits=2, decimal_places=1)
     review = models.TextField(blank = True, null = True)
 
@@ -241,7 +241,7 @@ class VideoGame(BaseModel):
 class Music(BaseModel):
     date = models.DateField(default=datetime.now)
     title = models.TextField()
-    artist = models.TextField()
+    artist = models.TextField(blank=True, null=True)
     rating = models.DecimalField(validators=[MinValueValidator(0), MaxValueValidator(5)], default = 3, max_digits=2, decimal_places=1)
     review = models.TextField(blank = True, null = True)
 
@@ -251,7 +251,7 @@ class Music(BaseModel):
 class BoardGame(BaseModel):
     date = models.DateField(default=datetime.now)
     title = models.TextField()
-    creator = models.TextField()
+    creator = models.TextField(blank=True, null=True)
     rating = models.DecimalField(validators=[MinValueValidator(0), MaxValueValidator(5)], default = 3, max_digits=2, decimal_places=1)
     review = models.TextField(blank = True, null = True)
 
@@ -261,7 +261,7 @@ class BoardGame(BaseModel):
 class Podcast(BaseModel):
     date = models.DateField(default=datetime.now)
     series = models.TextField()
-    episode = models.TextField()
+    episode = models.TextField(blank=True, null=True)
     episode_num = models.CharField(max_length=4, blank = True, null = True)
     rating = models.DecimalField(validators=[MinValueValidator(0), MaxValueValidator(5)], default = 3, max_digits=2, decimal_places=1)
     review = models.TextField(blank = True, null = True)
@@ -420,17 +420,17 @@ class Meal(BaseModel):
     date = models.DateField(default=datetime.now)
     foods = models.ManyToManyField(FoodItem)
     recipes = models.ManyToManyField(Recipe)
-    eat_time = models.TimeField()
-    location = models.TextField()
-    cost = models.DecimalField(max_digits=8, decimal_places=2)
+    eat_time = models.TimeField(blank=True, null=True)
+    location = models.TextField(blank=True, null=True)
+    cost = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     rating = models.DecimalField(validators=[MinValueValidator(0), MaxValueValidator(5)], default = 3, max_digits=2, decimal_places=1)
 
 class Travel(BaseModel):
     date = models.DateField(default=datetime.now)
     name = models.TextField()
     location_type = models.TextField()
-    latitude = models.DecimalField(max_digits=16, decimal_places=13)
-    longitude = models.DecimalField(max_digits=16, decimal_places=13)
+    latitude = models.DecimalField(max_digits=16, decimal_places=13, blank=True, null=True)
+    longitude = models.DecimalField(max_digits=16, decimal_places=13, blank=True, null=True)
 
 class FilmWish(BaseModel):
     title = models.TextField()
