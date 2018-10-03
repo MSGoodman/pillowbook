@@ -109,6 +109,21 @@
                 zoom: 2
             });
         }
+        function isTouchDevice() {
+            var prefixes = ' -webkit- -moz- -o- -ms- '.split(' ');
+            var mq = function(query) {
+                return window.matchMedia(query).matches;
+            }
+
+            if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
+                return true;
+            }
+
+            // include the 'heartz' as a way to have a non matching MQ to help terminate the join
+            // https://git.io/vznFH
+            var query = ['(', prefixes.join('touch-enabled),('), 'heartz', ')'].join('');
+            return mq(query);
+        }
 
         function dateToString(date){
             return date.getFullYear() + '-' + String(date.getMonth()+1).padStart(2,'0') + '-' + String(date.getDate()).padStart(2,'0');
@@ -231,7 +246,7 @@
                 state: {
                     tabIndent: false,
                     tabIndentSpaces: 0,
-                    enableDrag: false,
+                    enableDrag: !isTouchDevice(),
                 },
             }
             
