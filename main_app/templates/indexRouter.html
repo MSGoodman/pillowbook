@@ -272,6 +272,11 @@
                         var detailsDropdown = $(event.target).parents('.entry-item').children('.details-dropdown').first(); 
                         detailsDropdown.slideToggle();
                         this.showOptions = !this.showOptions;
+                    },
+                    hideViaParent: function(){
+                        if (this.showOptions){
+                            $(this.$el.lastChild).slideToggle();
+                        }
                     }
                 },
                 template:
@@ -1214,7 +1219,7 @@
                         if (this.entry.status != 'IN'){
                             this.entry.finish_time = moment();
                             this.entry.waiting_on = null;
-                            this.showOptions = false;
+                            this.$children[0].hideViaParent();
                             if (!this.entry.start_time) { this.entry.start_time = moment(); }
                             console.log(this.entry.finish_time);
                             this.toggleStart();
