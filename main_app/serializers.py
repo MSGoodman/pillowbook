@@ -211,6 +211,8 @@ class GroceryPurchaseSerializer(serializers.ModelSerializer):
 		fields = '__all__'
 
 class MealSerializer(serializers.ModelSerializer):
+	recipes = RecipeSerializer(many=True, read_only=True, required=False)
+
 	class Meta:
 		model = Meal
 		extra_kwargs = { 'user': {'default': serializers.CreateOnlyDefault(serializers.CurrentUserDefault())} } 
