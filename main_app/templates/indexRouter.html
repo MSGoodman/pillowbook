@@ -2762,6 +2762,10 @@
                 methods: {
                     getModuleDescription: function() {
                         return moduleDescriptions[this.entry.name];
+                    },
+                    checkboxClicked: function() {
+                        this.updated = false; this.updating = true;
+                        setTimeout(() => { this.updating = false; this.updated = true; this.hadChange = false }, 500);
                     }
                 },
                 template: 
@@ -2770,10 +2774,12 @@
                     
                     <template slot="display-section">
 
-                        <div class="custom-checkbox-container" @click="entry.display = !entry.display; updateEntry();">
+                        <div class="custom-checkbox-container" @click="entry.display = !entry.display; updateEntry(); checkboxClicked();">
                             <input type="checkbox" v-model="entry.display" @change="updateEntry" />
                             <label><span><i class="fas fa-check"></i></span> <strong>[{ entry.name }]</strong> </label>
                         </div>
+                        
+                        <span class="beside-update" v-bind:class="[{'update-appear':updating, 'update-fadeout':updated, 'invisible': !updating && !updated}]"><i class="far fa-save"></i> Updated</span>
 
                         <div class="module-description" v-html="getModuleDescription('Diary')">
                             [{ getModuleDescription('Diary') }]
