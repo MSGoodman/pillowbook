@@ -45,7 +45,7 @@
                 <h1><img class="logo-img" src="{% static 'placeholder-icon.png' %}" /> PillowBook </h1>
                 <div class="form-card">
                     <div class="card-header">Sign In</div>
-                    {% if error %} <div class="alert alert-danger"> {{ error }}</div> {% endif %}
+                    {% if error %} <div class="alert alert-danger"> {{ error | safe }}</div> {% endif %}
                     {% if success %} <div class="alert alert-success"> {{ success }}</div> {% endif %}
                     <form id="login" method="post" action="login">{% csrf_token %}
                         <div class="signup-label"> <label for="email"> Email </label> </div>

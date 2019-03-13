@@ -88,7 +88,10 @@ def app_activate(request, key):
 
 def app_login(request):
     if request.POST:
-        user_email = User.objects.get(email=request.POST['email'])
+        try:
+            user_email = User.objects.get(email=request.POST['email'])
+        except User.DoesNotExist:
+            return render(request, 'login_page.html', {'error': 'Account not found. Please <a href="https://www.pillow-book.com/signup">sign up</a> to use Pillowbook!' })
         if not user_email.is_active:
             return render(request, 'login_page.html', {'error': 'Sorry! You must activate your account via the link sent to your email address.' })
 
