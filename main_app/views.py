@@ -118,7 +118,7 @@ def make_new_user_module_buttons(user_instance):
     ModuleButton.objects.create(name='Diary',url_name='diary',icon_font_awesome='clipboard-list',user=user_instance)
     print("MADE ONE")
     ModuleButton.objects.create(name='Sleep',url_name='sleep',icon_font_awesome='bed',user=user_instance)
-    ModuleButton.objects.create(name='Weightlifting',url_name='weight',icon_font_awesome='dumbbell',user=user_instance)
+    ModuleButton.objects.create(name='Weight',url_name='weight',icon_font_awesome='dumbbell',user=user_instance)
     ModuleButton.objects.create(name='Cardio',url_name='cardio',icon_font_awesome='walking',user=user_instance)
     ModuleButton.objects.create(name='Toilet',url_name='toilet',icon_font_awesome='poo',user=user_instance)
     ModuleButton.objects.create(name='Sex',url_name='sex',icon_font_awesome='heart',user=user_instance)
